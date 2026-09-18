@@ -1,0 +1,10 @@
+node_modules/
+.generated/
+.local/
+artifacts/
+app/dist/
+app/sdk/
+app/.workbench-vite/
+.env*
+*.log
+.DS_Store

@@ -1,0 +1,318 @@
+{
+  "status": "private-development",
+  "snapshotDate": "2026-09-18",
+  "sourceBaseCommit": "ffde957a86210cc4ea77cd0c7282bbc06e204a46",
+  "sourceWorkingTree": "Contains local changes; file hashes identify the actual exported source.",
+  "files": [
+    {
+      "source": "resources/workbench-template/.gitignore",
+      "destination": "app/.gitignore",
+      "sourceSha256": "b457d0b36d894e659ffe853f099e019348b974eb16edc2acee025fe14fed5c3d",
+      "adapted": false,
+      "extractedSha256": "b457d0b36d894e659ffe853f099e019348b974eb16edc2acee025fe14fed5c3d",
+      "candidateSha256": "b457d0b36d894e659ffe853f099e019348b974eb16edc2acee025fe14fed5c3d"
+    },
+    {
+      "source": "resources/workbench-template/DESIGN.md",
+      "destination": "app/DESIGN.md",
+      "sourceSha256": "26abd39de023d2eabb50c00d5d35248e849cfdb857f091c16f87cc009df3c254",
+      "adapted": false,
+      "extractedSha256": "26abd39de023d2eabb50c00d5d35248e849cfdb857f091c16f87cc009df3c254",
+      "candidateSha256": "26abd39de023d2eabb50c00d5d35248e849cfdb857f091c16f87cc009df3c254"
+    },
+    {
+      "source": "resources/workbench-template/ENGINEERING.md",
+      "destination": "app/ENGINEERING.md",
+      "sourceSha256": "112c1f0b16cca9dca1da259259f3a37382efa8cd4e6c74b08dd34e348d8ef41a",
+      "adapted": false,
+      "extractedSha256": "112c1f0b16cca9dca1da259259f3a37382efa8cd4e6c74b08dd34e348d8ef41a",
+      "candidateSha256": "980bfa0fdac44a50b7993ecb450996848194c9344e81e51089f9b5c72bed2660"
+    },
+    {
+      "source": "resources/workbench-template/index.html",
+      "destination": "app/index.html",
+      "sourceSha256": "65a10bc1099695d69c410fd58bb29376505837304255f8161c2ff799a9863c46",
+      "adapted": false,
+      "extractedSha256": "65a10bc1099695d69c410fd58bb29376505837304255f8161c2ff799a9863c46",
+      "candidateSha256": "94b4868a662c554f2047aa2f216e4380d8e1247900c4ffcc34526870a78b6241"
+    },
+    {
+      "source": "resources/workbench-template/migrations/0001_initial.sql",
+      "destination": "app/migrations/0001_initial.sql",
+      "sourceSha256": "9a0726c40ad6cd0f49cee9027316a625f351e84d6806116f8720402cc26de3a3",
+      "adapted": false,
+      "extractedSha256": "9a0726c40ad6cd0f49cee9027316a625f351e84d6806116f8720402cc26de3a3",
+      "candidateSha256": "9a0726c40ad6cd0f49cee9027316a625f351e84d6806116f8720402cc26de3a3"
+    },
+    {
+      "source": "resources/workbench-template/package.json",
+      "destination": "app/package.json",
+      "sourceSha256": "276f33b933eaaaaaa4f863d25cb7c04b1757189052952ac054aa7a99afbf35fa",
+      "adapted": false,
+      "extractedSha256": "276f33b933eaaaaaa4f863d25cb7c04b1757189052952ac054aa7a99afbf35fa",
+      "candidateSha256": "1e646c5a057029f722d58a7693811f75d28d1c552e9e7b1d841c9f9dc19874bf"
+    },
+    {
+      "source": "resources/workbench-template/pnpm-lock.yaml",
+      "destination": "app/pnpm-lock.yaml",
+      "sourceSha256": "4c35c212e70eb622c8edba586d07579458df9c6b6c5d9e60dd8b1f7344fc4ba9",
+      "adapted": false,
+      "extractedSha256": "4c35c212e70eb622c8edba586d07579458df9c6b6c5d9e60dd8b1f7344fc4ba9",
+      "candidateSha256": "4c35c212e70eb622c8edba586d07579458df9c6b6c5d9e60dd8b1f7344fc4ba9"
+    },
+    {
+      "source": "resources/workbench-template/src/contracts/app.ts",
+      "destination": "app/src/contracts/app.ts",
+      "sourceSha256": "b196b47e09760e0992727103ac39cf91be74887c893cd937761f585ded101bdb",
+      "adapted": false,
+      "extractedSha256": "b196b47e09760e0992727103ac39cf91be74887c893cd937761f585ded101bdb",
+      "candidateSha256": "10b68bd1b7622c23b41c1382b667602a86afb8deccb3d96e68b2199932f7f7a2"
+    },
+    {
+      "source": "resources/workbench-template/src/server/app-route.ts",
+      "destination": "app/src/server/app-route.ts",
+      "sourceSha256": "d9cedf819435a608379baf74115209c0c821f59759bce6122e6a5e26937352fc",
+      "adapted": false,
+      "extractedSha256": "d9cedf819435a608379baf74115209c0c821f59759bce6122e6a5e26937352fc",
+      "candidateSha256": "8b5f89d969b6d95aecdf669c1c125cc7d084cdc035bae0e50342dabca05da6ed"
+    },
+    {
+      "source": "resources/workbench-template/src/server/index.ts",
+      "destination": "app/src/server/index.ts",
+      "sourceSha256": "5f04ac38b3f46fdef727ab69a0d6e170c52a3f442b9af909d02e96baf71f4c06",
+      "adapted": false,
+      "extractedSha256": "5f04ac38b3f46fdef727ab69a0d6e170c52a3f442b9af909d02e96baf71f4c06",
+      "candidateSha256": "5f04ac38b3f46fdef727ab69a0d6e170c52a3f442b9af909d02e96baf71f4c06"
+    },
+    {
+      "source": "resources/workbench-template/src/ui/App.tsx",
+      "destination": "app/src/ui/App.tsx",
+      "sourceSha256": "d42d650a55ab5e73c331a9c3bbb4f055804fb8925d6d53ea41734fcf46f07d36",
+      "adapted": false,
+      "extractedSha256": "d42d650a55ab5e73c331a9c3bbb4f055804fb8925d6d53ea41734fcf46f07d36",
+      "candidateSha256": "a519bf7ff6b95cee8d295c4533c1f7890612f7b04fa422c4586ed4eb4275b548"
+    },
+    {
+      "source": "resources/workbench-template/src/ui/connection.ts",
+      "destination": "app/src/ui/connection.ts",
+      "sourceSha256": "ef8a193644152d4eca1b08fc1b8f5dfa4f0ab8a9802536420e1b4a40e2e6bf35",
+      "adapted": false,
+      "extractedSha256": "ef8a193644152d4eca1b08fc1b8f5dfa4f0ab8a9802536420e1b4a40e2e6bf35",
+      "candidateSha256": "ff241590a828c568bdcc5074001733b74c58293a719bc3f1212bc70306c77fe8"
+    },
+    {
+      "source": "resources/workbench-template/src/ui/main.tsx",
+      "destination": "app/src/ui/main.tsx",
+      "sourceSha256": "f9d8bea556729344838c17a30e18ad40273563e266946db84beb97191ec0ea8f",
+      "adapted": false,
+      "extractedSha256": "f9d8bea556729344838c17a30e18ad40273563e266946db84beb97191ec0ea8f",
+      "candidateSha256": "f9d8bea556729344838c17a30e18ad40273563e266946db84beb97191ec0ea8f"
+    },
+    {
+      "source": "resources/workbench-template/src/ui/messages.ts",
+      "destination": "app/src/ui/messages.ts",
+      "sourceSha256": "51550ce7ea1f9cd1c9e89cdb263fca3059a8c6e806a153a7fb0d3adde02c72a3",
+      "adapted": false,
+      "extractedSha256": "51550ce7ea1f9cd1c9e89cdb263fca3059a8c6e806a153a7fb0d3adde02c72a3",
+      "candidateSha256": "618e19465bf1ddc1b057c1f357bd57aecd73be14aaeae28393dc5c62cf1e3130"
+    },
+    {
+      "source": "resources/workbench-template/src/ui/style.css",
+      "destination": "app/src/ui/style.css",
+      "sourceSha256": "fb87d205718a36993466643d91c0027a5fe33c647ea4fc5798542f96ab8630cb",
+      "adapted": false,
+      "extractedSha256": "fb87d205718a36993466643d91c0027a5fe33c647ea4fc5798542f96ab8630cb",
+      "candidateSha256": "9741e1c514d60d9c76f41798451977fd7847573fd2d078ae553d86588cd4d9e9"
+    },
+    {
+      "source": "resources/workbench-template/tests/app.test.ts",
+      "destination": "app/tests/app.test.ts",
+      "sourceSha256": "b7933dcd241067337e94cdfe0c83c5e31a128b27a96317163a9443a95d210989",
+      "adapted": false,
+      "extractedSha256": "b7933dcd241067337e94cdfe0c83c5e31a128b27a96317163a9443a95d210989",
+      "candidateSha256": "d322386fd1ac4ca1462cab3fd4a439d5aa99ffdf60812b26e6e8ac1bf66c725c"
+    },
+    {
+      "source": "resources/workbench-template/tsconfig.json",
+      "destination": "app/tsconfig.json",
+      "sourceSha256": "193acba0ae171d1ab1597f6bb24e1390277a95587127544e1ceb0f901cc96a9e",
+      "adapted": false,
+      "extractedSha256": "193acba0ae171d1ab1597f6bb24e1390277a95587127544e1ceb0f901cc96a9e",
+      "candidateSha256": "193acba0ae171d1ab1597f6bb24e1390277a95587127544e1ceb0f901cc96a9e"
+    },
+    {
+      "source": "src/main/workbench/sdk/agent-contracts.mts",
+      "destination": "sdk/agent-contracts.mts",
+      "sourceSha256": "490db76c260fef07a905a1e21ff2789bbeb9ea568088fa6a2cdbc1e0bc8b8dcc",
+      "adapted": false,
+      "extractedSha256": "490db76c260fef07a905a1e21ff2789bbeb9ea568088fa6a2cdbc1e0bc8b8dcc",
+      "candidateSha256": "490db76c260fef07a905a1e21ff2789bbeb9ea568088fa6a2cdbc1e0bc8b8dcc"
+    },
+    {
+      "source": "src/main/workbench/sdk/asr-contracts.mts",
+      "destination": "sdk/asr-contracts.mts",
+      "sourceSha256": "67e7a6e5a39d9a1c6717c0bef41c8b6538fb73db55748ecc25c6d69010c44b3f",
+      "adapted": false,
+      "extractedSha256": "67e7a6e5a39d9a1c6717c0bef41c8b6538fb73db55748ecc25c6d69010c44b3f",
+      "candidateSha256": "67e7a6e5a39d9a1c6717c0bef41c8b6538fb73db55748ecc25c6d69010c44b3f"
+    },
+    {
+      "source": "src/main/workbench/sdk/browser.mts",
+      "destination": "sdk/browser.mts",
+      "sourceSha256": "d17e6593cb5283f92328077c67ff82a5d4d42cae1bd3699dd107c073b869a386",
+      "adapted": false,
+      "extractedSha256": "d17e6593cb5283f92328077c67ff82a5d4d42cae1bd3699dd107c073b869a386",
+      "candidateSha256": "d17e6593cb5283f92328077c67ff82a5d4d42cae1bd3699dd107c073b869a386"
+    },
+    {
+      "source": "src/main/workbench/sdk/data-lock.mts",
+      "destination": "sdk/data-lock.mts",
+      "sourceSha256": "a43d9d4788d6e884de49caf8832ca8d43013b43a3b1259b5743802fa6dec2a19",
+      "adapted": false,
+      "extractedSha256": "a43d9d4788d6e884de49caf8832ca8d43013b43a3b1259b5743802fa6dec2a19",
+      "candidateSha256": "a43d9d4788d6e884de49caf8832ca8d43013b43a3b1259b5743802fa6dec2a19"
+    },
+    {
+      "source": "src/main/workbench/sdk/database.mts",
+      "destination": "sdk/database.mts",
+      "sourceSha256": "16df32336846a85a445f5e5fbbe7a7d6c461b595fa2fe41e3c54fa6b193d8551",
+      "adapted": false,
+      "extractedSha256": "16df32336846a85a445f5e5fbbe7a7d6c461b595fa2fe41e3c54fa6b193d8551",
+      "candidateSha256": "16df32336846a85a445f5e5fbbe7a7d6c461b595fa2fe41e3c54fa6b193d8551"
+    },
+    {
+      "source": "src/main/workbench/sdk/errors.mts",
+      "destination": "sdk/errors.mts",
+      "sourceSha256": "f432162a6ec6c0c646005cb5c2e24284a7962693ca2d99f898819c5bcf1fbb5b",
+      "adapted": false,
+      "extractedSha256": "f432162a6ec6c0c646005cb5c2e24284a7962693ca2d99f898819c5bcf1fbb5b",
+      "candidateSha256": "f432162a6ec6c0c646005cb5c2e24284a7962693ca2d99f898819c5bcf1fbb5b"
+    },
+    {
+      "source": "src/main/workbench/sdk/host-contracts.mts",
+      "destination": "sdk/host-contracts.mts",
+      "sourceSha256": "018cac2b52584bae5fed28e0a3e6230f37439d3b94f98020a91ecc842963a822",
+      "adapted": false,
+      "extractedSha256": "018cac2b52584bae5fed28e0a3e6230f37439d3b94f98020a91ecc842963a822",
+      "candidateSha256": "018cac2b52584bae5fed28e0a3e6230f37439d3b94f98020a91ecc842963a822"
+    },
+    {
+      "source": "src/main/workbench/sdk/host.mts",
+      "destination": "sdk/host.mts",
+      "sourceSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2",
+      "adapted": false,
+      "extractedSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2",
+      "candidateSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2"
+    },
+    {
+      "source": "src/main/workbench/sdk/maintenance.mts",
+      "destination": "sdk/maintenance.mts",
+      "sourceSha256": "e0205a2072df1c2860f0dfa22c8a6599d9f5dd90a45665494a7984623145c941",
+      "adapted": false,
+      "extractedSha256": "e0205a2072df1c2860f0dfa22c8a6599d9f5dd90a45665494a7984623145c941",
+      "candidateSha256": "e0205a2072df1c2860f0dfa22c8a6599d9f5dd90a45665494a7984623145c941"
+    },
+    {
+      "source": "src/main/workbench/sdk/runtime-contracts.mts",
+      "destination": "sdk/runtime-contracts.mts",
+      "sourceSha256": "12a41803049c1e6996b09e7118e33f34c3074dac6223a27d413406773413d929",
+      "adapted": false,
+      "extractedSha256": "12a41803049c1e6996b09e7118e33f34c3074dac6223a27d413406773413d929",
+      "candidateSha256": "12a41803049c1e6996b09e7118e33f34c3074dac6223a27d413406773413d929"
+    },
+    {
+      "source": "src/main/workbench/sdk/runtime.mts",
+      "destination": "sdk/runtime.mts",
+      "sourceSha256": "cd4442c98d2f062216708003c753aeb9436212100bbef2207e497aa641c98ad9",
+      "adapted": false,
+      "extractedSha256": "cd4442c98d2f062216708003c753aeb9436212100bbef2207e497aa641c98ad9",
+      "candidateSha256": "cd4442c98d2f062216708003c753aeb9436212100bbef2207e497aa641c98ad9"
+    },
+    {
+      "source": "src/main/workbench/compiler/diagnostics.ts",
+      "destination": "tooling/compiler/diagnostics.ts",
+      "sourceSha256": "3f8b3b14fa235efeb210a52c9d925526e4f2fc066f448947d03ad8e7fa6f6c98",
+      "adapted": true,
+      "extractedSha256": "e5178fb8db87a3f92896ab91493306e245ad8b7f089d7679c5282cf678960aa0",
+      "candidateSha256": "e5178fb8db87a3f92896ab91493306e245ad8b7f089d7679c5282cf678960aa0"
+    },
+    {
+      "source": "src/main/workbench/compiler/module-structure.ts",
+      "destination": "tooling/compiler/module-structure.ts",
+      "sourceSha256": "9aae9c3c8b253801d4ad66df6866dab89899c88d51e6c1e02a5747273850b8a2",
+      "adapted": true,
+      "extractedSha256": "6b92828e27c36ae2201fb07cc61f364fd9b0c14c7248c510d69627f156704a2c",
+      "candidateSha256": "6b92828e27c36ae2201fb07cc61f364fd9b0c14c7248c510d69627f156704a2c"
+    },
+    {
+      "source": "src/main/workbench/compiler/page-entry.ts",
+      "destination": "tooling/compiler/page-entry.ts",
+      "sourceSha256": "18aef2ad12f0ef7f0d6ef759f16cf04fcb4138bb3fdd4973ac78ac4eea710214",
+      "adapted": true,
+      "extractedSha256": "eef2d72cb85fb03a12cb10458f0f482612812b84dd87b46d56ef6a5ee63796d9",
+      "candidateSha256": "eef2d72cb85fb03a12cb10458f0f482612812b84dd87b46d56ef6a5ee63796d9"
+    },
+    {
+      "source": "src/main/workbench/compiler/typecheck.ts",
+      "destination": "tooling/compiler/typecheck.ts",
+      "sourceSha256": "b21e8ba3e5876579eeab8cf9a5fc9d58b6f826a131801231f4614b6cdfdc7046",
+      "adapted": true,
+      "extractedSha256": "8ed229b431b7bc86f312a9a5e93a520de51cd5bc0fc19851ded805bd87b4cbe8",
+      "candidateSha256": "8ed229b431b7bc86f312a9a5e93a520de51cd5bc0fc19851ded805bd87b4cbe8"
+    },
+    {
+      "source": "src/main/workbench/compiler/worker.ts",
+      "destination": "tooling/compiler/worker.ts",
+      "sourceSha256": "424968c86a9608d719a8582c60935a71a83ca1066773cd033331a5791f8b6506",
+      "adapted": true,
+      "extractedSha256": "3b56f467ee044b8315d6e42061c19fdf877d71bc085af72931b813cb9fc4ec44",
+      "candidateSha256": "b41f6f8f2ff6e69a99e801cdc7dbaf40a3593088234f71f36f866603ba644862"
+    },
+    {
+      "source": "src/common/workbench/workbenchManifest.ts",
+      "destination": "tooling/contracts/workbenchManifest.ts",
+      "sourceSha256": "3e818fe4b95997514c6680608898e18e6cb1bf1a29af2782534786c1c9fc3c33",
+      "adapted": true,
+      "extractedSha256": "872013e720596930bb3f3ab8acca3f27b004fac44b499789f2033fa2104eecca",
+      "candidateSha256": "c66e309eeda9697aab879b44d03b42b66bf324140342a6fdfd257511464d6086"
+    },
+    {
+      "source": "src/common/workbench/workbenchCompilation.ts",
+      "destination": "tooling/contracts/workbenchCompilation.ts",
+      "sourceSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7",
+      "adapted": false,
+      "extractedSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7",
+      "candidateSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7"
+    },
+    {
+      "source": "src/common/workbench/workbenchTransfer.ts",
+      "destination": "tooling/contracts/workbenchTransfer.ts",
+      "sourceSha256": "8a848dbf04534bf959fb804ba9d7dc0852a5af506ae83350a599ae63fe3d0348",
+      "adapted": true,
+      "extractedSha256": "058ef1201089f28ff837ab49bdc34f13571d51bd2b12ca81d06f7771f8ba6f0b",
+      "candidateSha256": "058ef1201089f28ff837ab49bdc34f13571d51bd2b12ca81d06f7771f8ba6f0b"
+    },
+    {
+      "source": "src/main/workbench/transfer/WorkbenchTransferArchive.ts",
+      "destination": "tooling/transfer/WorkbenchTransferArchive.ts",
+      "sourceSha256": "48ca8d927e8de29fc7c1dce77af2f98a0ff0310828fefa4129affd8f78a27801",
+      "adapted": true,
+      "extractedSha256": "bc9dbff8e7037f6c1f325ad07d74f502f74d0a13af83b8f884c50a7f56d3d40a",
+      "candidateSha256": "c2d664a590880a3ab448895cebf2a025554e0698af0bbe2aba0b9905e0ad4971"
+    }
+  ],
+  "additionalContractSources": [
+    {
+      "source": "src/common/workbench/workbenchStore.ts",
+      "sourceSha256": "1b70a21e81bf51dc1cd812780a4ce00d8c8db5254678952287a956eb3f96812c",
+      "selection": "Registry-name and stable SemVer schema declarations only; embedded in the manifest contract."
+    }
+  ],
+  "adaptations": [
+    "Compiler resolves dependencies from the standalone repository node_modules, while application-relative imports retain their boundary checks.",
+    "Manifest and transfer contracts omit Desktop-only record and IPC types.",
+    "Archive stream teardown narrows the Node readable type; transfer format and hash algorithm are unchanged.",
+    "Application adds explicit platform status and per-tab page-token retention for standalone refresh.",
+    "Tooling/CLI and standalone documentation are authored for this local candidate."
+  ]
+}
