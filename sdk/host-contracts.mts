@@ -40,10 +40,14 @@ export type ModelEvent =
   | ModelResult
   | { type: 'done'; requestId: string };
 
+export type WorkflowRunStatus =
+  | 'queued' | 'running' | 'waiting_for_user'
+  | 'succeeded' | 'failed' | 'skipped' | 'rejected' | 'timed_out' | 'emergency_stopped' | 'cancelled';
+
 export interface WorkflowRun {
   id: string;
   workflowId: string;
-  status: string;
+  status: WorkflowRunStatus;
   triggerType: string;
   startedAt: number;
   completedAt: number | null;

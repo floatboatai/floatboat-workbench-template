@@ -1,5 +1,13 @@
 # Local verification — 2026-09-18
 
+## 2026-09-20 Remote-clone application and Electron handoff
+
+Pushed live preview and Connector SDK/guidance to the private template repository (`6269987`), cloned that remote revision into a separate application checkout and built a project delivery workbench with CRUD, SQLite, fixed assets, managed delivery files and a bundled deterministic Workflow.
+
+The exercise exposed a missing Workflow status contract: success is `succeeded`, not the Agent task status `completed`. The SDK now exports `WorkflowRunStatus`, and the workflow topic explicitly documents active and terminal states. Application SDK/build/tests and Skill checks pass after this correction.
+
+Real standalone Chrome covered CRUD, filtering, file persistence, source live reload, failed-save recovery, unavailable Workflow/Connector states and 360/768/1280 layouts. Packaged macOS Electron then imported the real source package, restored dependencies, required trust before execution, ran the actual bundled Workflow, retained the process after panel close, persisted the auto-start preference, and exported/imported SQLite plus the declared delivery file into a separate workspace. Account/entitlement setup and native dialog choices used the isolated E2E harness; packaging, compilation, SQLite, file resources and Workflow execution used their real implementations. This does not verify production account entitlement, third-party OAuth, paid models, Windows/Linux or public store publishing.
+
 ## 2026-09-20 Standalone live reload and package handoff
 
 `pnpm dev` now watches source, validates isolated snapshots and reloads a stable authenticated preview page. Build failures retain the old version; startup failures restore its data and service. `pnpm run package` aliases the existing `.fbworkbench` exporter and prints Floatboat import instructions. README and the canonical authoring Skill cover standalone and Host update behavior.

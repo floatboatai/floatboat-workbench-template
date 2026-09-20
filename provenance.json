@@ -191,10 +191,10 @@
     {
       "source": "src/main/workbench/sdk/host-contracts.mts",
       "destination": "sdk/host-contracts.mts",
-      "sourceSha256": "5402d73a55442e3f25d0eac8b455c82ca48cd2bf5afab8f13eb7110d9a3fad0f",
+      "sourceSha256": "a6514f9b6d282e7715268c10484073943dba37c51a2a7d8e2f869ca44b923d5b",
       "adapted": false,
       "extractedSha256": "e159e774deed3f6f1632a9511c0684f6c0d1503e836b36d71864f94e3196c227",
-      "candidateSha256": "5402d73a55442e3f25d0eac8b455c82ca48cd2bf5afab8f13eb7110d9a3fad0f"
+      "candidateSha256": "a6514f9b6d282e7715268c10484073943dba37c51a2a7d8e2f869ca44b923d5b"
     },
     {
       "source": "src/main/workbench/sdk/host.mts",

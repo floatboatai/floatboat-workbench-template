@@ -1,5 +1,7 @@
 # Workflow execution
 
+`run.status === 'succeeded'` is successful completion; read `run.output` then. `queued`, `running` and `waiting_for_user` remain active. `failed`, `skipped`, `rejected`, `timed_out`, `emergency_stopped` and `cancelled` are terminal: stop waiting and show the appropriate result. Use the exported `WorkflowRunStatus` union; do not reuse Agent task status names for Workflow runs. Persist the operation key before starting and keep it across page reloads until the result is reconciled.
+
 Declare `workflows` and each dependency in manifest. See [resources](resources.md) for bundle, exact registry reference and Host-local binding. Workbench declarations and native Workflow capability allowlists serve different purposes; maintain both when authoring nested calls.
 
 Server example, after persisting a stable business operation ID:
