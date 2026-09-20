@@ -29,6 +29,7 @@ export async function prepareTools() {
     ['compiler/worker.ts', 'compiler.mjs'],
     ['contracts/workbenchManifest.ts', 'manifest.mjs'],
     ['transfer/WorkbenchTransferArchive.ts', 'archive.mjs'],
+    ['transfer/WorkbenchAssetTransfer.ts', 'assets.mjs'],
   ]) {
     await build({ entryPoints: [join(repository, 'tooling', entry)], outfile: join(generated, output),
       bundle: true, packages: 'external', platform: 'node', format: 'esm', target: 'node22', logLevel: 'silent' });

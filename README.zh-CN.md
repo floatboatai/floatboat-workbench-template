@@ -20,7 +20,24 @@ pnpm dev
 
 > 阅读 AGENTS.md，为我创建一个用于［用户与业务目标］的工作台。先补充 app/REQUIREMENTS.md，在 app/ 中实现业务流程，同时维护 manifest。完成检查、测试和真实浏览器预览验证。
 
-Codex 读取根 `AGENTS.md`，Claude Code 通过 `CLAUDE.md` 引用同一份指引。其他工具可明确要求读取它；不依赖 Floatboat 专用 MCP。
+仓库内置 `floatboat-workbench` Skill，覆盖现有工作台创建指导的 15 个主题。在此仓库中新开会话后，可以这样使用：
+
+- Codex：`$floatboat-workbench 为我创建一个项目管理工作台`。
+- Claude Code：`/floatboat-workbench 为我创建一个项目管理工作台`。
+- 其他工具：明确要求读取 [.agents/skills/floatboat-workbench/SKILL.md](.agents/skills/floatboat-workbench/SKILL.md)。根 AGENTS.md 也会指向这个入口。
+
+Codex 的入口放在官方支持的 [.agents/skills](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)；Claude 使用 [.claude/skills](https://code.claude.com/docs/en/skills#where-skills-live) 下生成的薄入口，引用同一份正文。无需安装 Floatboat 或配置其 MCP，就能读取指引和开发本地应用。
+
+也可以按主题读取：
+
+```sh
+pnpm workbench:guide -- --list
+pnpm workbench:guide -- --topic resources
+# 尚未安装依赖时，直接用 Node 读取：
+node tooling/guide.mjs --topic runtime
+```
+
+runtime 主题提供 Host 创建工具与模板本地命令的对应关系；其他主题覆盖工程、页面设计、数据库、依赖资源、模型、Agent、ASR、Workflow、连接服务、日程和自动化。只维护 `.agents` 真源，用 `pnpm skills:sync` 生成 Claude 入口，`pnpm skills:check` 检查主题、链接和入口一致性。
 
 ## 交付
 

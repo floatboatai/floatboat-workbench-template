@@ -3,7 +3,7 @@
   "sdkVersion": "1.0.0",
   "runtime": "node22-sqlite-v1",
   "buildProfile": "typescript-react-v1",
-  "transferFormatVersion": 1,
+  "transferFormatVersion": 2,
   "nodeMajor": 22,
   "licenseDecision": "pending",
   "distribution": "private-development"

@@ -4,7 +4,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { lstat, mkdir, readFile, readdir, rename, rm, statfs } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { Readable, Transform } from 'node:stream';
+import { Transform } from 'node:stream';
 import * as yauzl from 'yauzl';
 import * as yazl from 'yazl';
 import { transferManifestSchema, type WorkbenchTransferManifest } from '../contracts/workbenchTransfer';
@@ -35,9 +35,12 @@ export function validateTransferPath(path: string): void {
   )
     throw new Error(`WORKBENCH_TRANSFER_PATH_INVALID:${path}`);
   if (
-    !['transfer.json', 'snapshot.json', 'operation-history.json'].includes(path) &&
+    !['transfer.json', 'snapshot.json', 'operation-history.json', 'workbench.lock.json'].includes(path) &&
     !path.startsWith('application/') &&
-    !path.startsWith('data/')
+    !path.startsWith('data/') &&
+    !path.startsWith('assets/') &&
+    !path.startsWith('resource-data/') &&
+    !path.startsWith('dependencies/')
   )
     throw new Error('WORKBENCH_TRANSFER_ENTRY_INVALID');
   if (path.startsWith('application/') && /\.(?:node|exe|dll|dylib|so|dmg|app|sqlite|db)$/iu.test(path))
@@ -56,10 +59,10 @@ class Budget {
   private dataFiles = 0;
   add(path: string, size: number): void {
     if (!Number.isSafeInteger(size) || size < 0) throw new Error('WORKBENCH_TRANSFER_SIZE_INVALID');
-    if (path.startsWith('data/')) {
+    if (path.startsWith('data/') || path.startsWith('resource-data/')) {
       this.data += size;
       if (++this.dataFiles > 100_000 || this.data > DATA_BYTES) throw new Error('WORKBENCH_TRANSFER_DATA_TOO_LARGE');
-    } else if (path.startsWith('application/')) {
+    } else if (path.startsWith('application/') || path.startsWith('assets/') || path.startsWith('dependencies/')) {
       this.application += size;
       if (++this.files > 10_000 || this.application > APPLICATION_BYTES)
         throw new Error('WORKBENCH_TRANSFER_APP_TOO_LARGE');
@@ -99,7 +102,7 @@ export async function packWorkbench(
   };
   await visit('');
   const body: Omit<WorkbenchTransferManifest, 'packageId'> = {
-    formatVersion: 1 as const,
+    formatVersion: 2 as const,
     ...info,
     runtime: WORKBENCH_RUNTIME_PROFILE,
     sdkVersion: WORKBENCH_SDK_VERSION,
@@ -117,7 +120,7 @@ export async function packWorkbench(
     await pending;
     await rename(temporary, destination);
   } catch (error) {
-    if (zip.outputStream instanceof Readable) zip.outputStream.destroy();
+    (zip.outputStream as import('node:stream').Readable).destroy();
     await pending.catch(() => undefined);
     throw error;
   } finally {
@@ -200,12 +203,23 @@ export async function unpackWorkbench(archive: string, destination: string): Pro
       const found = actual.get(file.path);
       if (!found || found.size !== file.size || found.sha256 !== file.sha256)
         throw new Error('WORKBENCH_TRANSFER_DIGEST_MISMATCH');
-      if (manifest.kind === 'application' && !file.path.startsWith('application/'))
+      if (
+        manifest.kind === 'application' &&
+        !file.path.startsWith('application/') &&
+        !(
+          manifest.formatVersion === 2 &&
+          (file.path === 'workbench.lock.json' ||
+            file.path.startsWith('assets/') ||
+            file.path.startsWith('dependencies/'))
+        )
+      )
         throw new Error('WORKBENCH_TRANSFER_KIND_MISMATCH');
     }
     if (
       manifest.kind === 'migration' &&
-      !['data/data.sqlite', 'snapshot.json', 'operation-history.json'].every((path) => declared.has(path))
+      ![...(manifest.formatVersion === 1 ? ['data/data.sqlite'] : []), 'snapshot.json', 'operation-history.json'].every(
+        (path) => declared.has(path),
+      )
     )
       throw new Error('WORKBENCH_TRANSFER_SNAPSHOT_REQUIRED');
     return manifest;

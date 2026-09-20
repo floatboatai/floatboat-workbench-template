@@ -3,6 +3,7 @@ import { constants } from 'node:fs';
 import { copyFile, mkdir, mkdtemp, readdir, lstat, rm, open } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { application, repository, checkApplication, readManifest } from './build.mjs';
+import { packDeclaredAssets } from './assets.mjs';
 
 const files = ['manifest.json', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', 'index.html',
   'REQUIREMENTS.md', 'DESIGN.md', 'ENGINEERING.md', 'LICENSE'];
@@ -45,6 +46,7 @@ export async function exportApplication(destination, root = application) {
     // 检查固定下来的源文件，防止创作期间的修改绕过刚完成的构建。
     const frozenRoot = join(contents, 'application');
     const checkedManifest = await checkApplication(frozenRoot);
+    await packDeclaredAssets(checkedManifest, root, staging, contents);
     for (const generated of ['sdk', 'dist', '.workbench-vite'])
       await rm(join(frozenRoot, generated), { recursive: true, force: true });
     await mkdir(dirname(destination), { recursive: true });

@@ -11,6 +11,36 @@ import { exportApplication } from '../tooling/package.mjs';
 
 before(prepareTools);
 
+test('声明的固定资源与 Workflow 随包交付，业务资源只保留声明，本机绑定缺失阻止导出', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  await mkdir(join(root, 'templates'));
+  await writeFile(join(root, 'templates/report.txt'), 'portable asset');
+  await mkdir(join(root, 'dependencies'));
+  await writeFile(join(root, 'dependencies/extract.workflow.js'), 'export const meta = { name: "extract" };');
+  manifest.resources = [
+    { id: 'templates', role: 'asset', location: 'project', kind: 'directory', path: 'templates' },
+    { id: 'files', role: 'data', location: 'data', kind: 'directory', path: 'files', access: 'read-write' },
+  ];
+  manifest.dependencies = [{ id: 'extract', kind: 'workflow', source: { type: 'bundle', path: 'dependencies/extract.workflow.js' } }];
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  const destination = join(directory, 'resources.fbworkbench');
+  await exportApplication(destination, root);
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const { validateWorkbenchAssetTransfer } = await import('../.generated/assets.mjs');
+  const unpacked = join(directory, 'unpacked');
+  const archive = await unpackWorkbench(destination, unpacked);
+  assert.equal(archive.formatVersion, 2);
+  const imported = JSON.parse(await readFile(join(unpacked, 'application/manifest.json'), 'utf8'));
+  const lock = await validateWorkbenchAssetTransfer(unpacked, imported);
+  assert.equal(lock.dependencies[0].status, 'bundled');
+  assert.equal(lock.resources[1].status, 'excluded');
+  assert.equal(await readFile(join(unpacked, 'application', imported.resources[0].path, 'report.txt'), 'utf8'), 'portable asset');
+  assert.ok(!JSON.stringify(lock).includes(root));
+  manifest.dependencies[0].source = { type: 'binding' };
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  await assert.rejects(exportApplication(join(directory, 'missing.fbworkbench'), root), /WORKBENCH_DEPENDENCY_UNBOUND/);
+});
+
 async function fixture(t) {
   const local = join(repository, '.local');
   await mkdir(local, { recursive: true });

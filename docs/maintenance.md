@@ -14,6 +14,7 @@ Verification commands:
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts
+pnpm skills:check
 pnpm workbench:check
 pnpm test
 pnpm test:tooling
@@ -22,3 +23,9 @@ pnpm workbench:pack
 ```
 
 The tooling tests exercise initialization safety, invalid manifest/source links, authenticated real HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
+
+## Authoring guidance
+
+Edit `.agents/skills/floatboat-workbench/SKILL.md` and its references. `topics.json` keeps the topic names aligned with the Host guide; `tooling/guide.mjs` reads these files without building or installing dependencies. `pnpm skills:sync` regenerates only the Claude entry, preserving unrelated skills; `pnpm skills:check` reports missing references or a stale entry. Commit both discovery entries when publishing repository changes so fresh checkouts have the Skill before running setup.
+
+When Host APIs or authoring topics change, compare the sources recorded in [skill provenance](skill-provenance.md), update the corresponding portable guide and preserve the distinction between a standalone checkout and an installed Host instance. Validate command examples against package.json and signatures against the included SDK. The content should remain usable without the Desktop source repository.

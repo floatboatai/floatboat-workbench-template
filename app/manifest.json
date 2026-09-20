@@ -17,5 +17,7 @@
   "ui": "dist/ui",
   "migrations": "migrations",
   "capabilities": [],
-  "contributions": []
+  "contributions": [],
+  "dependencies": [],
+  "resources": []
 }

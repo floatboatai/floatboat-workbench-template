@@ -7,6 +7,11 @@ import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node
 import { fileURLToPath } from 'node:url';
 import { openWorkbenchDatabase } from './database.mjs';
 import { createHostClient } from './host.mjs';
+import {
+  createWorkbenchResources,
+  prepareWorkbenchResourceDirectories,
+  type WorkbenchResourceBinding,
+} from './resources.mjs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { HostConnection } from './host.mjs';
 import type { RouteContext, WorkbenchManifest, WorkbenchServer } from './runtime-contracts.mjs';
@@ -20,6 +25,7 @@ interface StartConfiguration {
   pageToken: string;
   sourceDirectory: string;
   dataDirectory: string;
+  resources?: Record<string, WorkbenchResourceBinding>;
   hostConnection?: HostConnection | null;
   port?: number;
   development?: boolean;
@@ -57,6 +63,12 @@ export async function createWorkbenchServer(
     migrationsDirectory: join(config.sourceDirectory, manifest.migrations),
   });
   const database = connection.database;
+  try {
+    await prepareWorkbenchResourceDirectories(manifest.resources ?? [], config.dataDirectory);
+  } catch (error) {
+    await connection.close();
+    throw error;
+  }
   const routes: Route[] = [];
   const actions = new Map<string, (input: unknown) => unknown | Promise<unknown>>();
   let url: string | undefined;
@@ -217,6 +229,7 @@ export async function createWorkbenchServer(
 
   return {
     manifest,
+    resources: createWorkbenchResources(manifest.resources ?? [], config),
     database,
     host,
     trackTask,

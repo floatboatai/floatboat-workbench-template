@@ -1,0 +1,17 @@
+{
+  "overview": "SKILL.md",
+  "engineering": "references/engineering.md",
+  "design": "references/design.md",
+  "verification": "references/verification.md",
+  "database": "references/database.md",
+  "llm": "references/llm.md",
+  "agent": "references/agent.md",
+  "asr": "references/asr.md",
+  "workflows": "references/workflows.md",
+  "resources": "references/resources.md",
+  "connected-services": "references/connected-services.md",
+  "calendar": "references/calendar.md",
+  "automation": "references/automation.md",
+  "ui": "references/ui.md",
+  "runtime": "references/runtime.md"
+}

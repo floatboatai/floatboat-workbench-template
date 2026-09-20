@@ -13,6 +13,9 @@
     "workbench:preview": "node tooling/cli.mjs preview",
     "dev": "node tooling/cli.mjs preview",
     "workbench:pack": "node tooling/cli.mjs pack",
+    "workbench:guide": "node tooling/guide.mjs",
+    "skills:sync": "node tooling/workbench-skill.mjs --write",
+    "skills:check": "node tooling/workbench-skill.mjs --check",
     "test": "node tooling/cli.mjs test",
     "test:tooling": "node --test tests/*.test.mjs"
   },

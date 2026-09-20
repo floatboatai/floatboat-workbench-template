@@ -1,6 +1,7 @@
 // ABOUTME: App 自有 HTTP、SQLite 与在途任务的公开契约。
 
 import type { IncomingMessage } from 'node:http';
+import type { WorkbenchResources, WorkbenchResourceDeclaration } from './resources.mjs';
 
 import type { DatabaseSync } from 'node:sqlite';
 
@@ -14,6 +15,7 @@ export interface WorkbenchManifest {
   ui: string;
   migrations: string;
   capabilities: string[];
+  resources?: WorkbenchResourceDeclaration[];
 }
 
 export interface RouteContext {
@@ -27,6 +29,7 @@ export interface RouteContext {
 
 export interface WorkbenchServer {
   manifest: WorkbenchManifest;
+  resources: WorkbenchResources;
   database: DatabaseSync;
   host: HostClient;
   route(

@@ -25,7 +25,7 @@ export const transferHistorySchema = z
 export type WorkbenchTransferHistory = z.infer<typeof transferHistorySchema>;
 export const transferManifestSchema = z
   .object({
-    formatVersion: z.literal(1),
+    formatVersion: z.union([z.literal(1), z.literal(2)]),
     packageId: digest,
     kind: z.enum(['application', 'migration']),
     sourceAppId: z.string().regex(/^[a-z0-9][a-z0-9.-]{2,127}$/u),

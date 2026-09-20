@@ -16,3 +16,5 @@ The validator is `tooling/contracts/workbenchManifest.ts`. `pnpm workbench:check
 | `license` | Optional application license, selected by its owner. The local candidate leaves it absent while its own license is undecided. Store submission may impose separate license requirements. |
 
 Core defaults include `schemaVersion: 1`, `runtime: node22-sqlite-v1`, `sdkVersion: 1.0.0`, build profile `typescript-react-v1`, server `dist/server/index.mjs`, UI `dist/ui`, migrations `migrations`. Metadata beyond the required build contract is encouraged without inventing unsupported capabilities, compatibility or a license.
+
+Workflow/Combo dependencies and file resources use `dependencies` and `resources`; see [resources](resources.md). Absolute local bindings do not belong in manifest.

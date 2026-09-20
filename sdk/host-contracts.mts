@@ -53,7 +53,8 @@ export interface WorkflowRun {
 }
 
 export interface WorkflowStart {
-  name: string;
+  name?: string;
+  dependency?: string;
   input?: Record<string, Json>;
   idempotencyKey: string;
   timeoutMs?: number;

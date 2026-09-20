@@ -28,3 +28,23 @@ References for entry points and runtime flags:
 - [Codex AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 - [Claude Code CLAUDE.md imports](https://code.claude.com/docs/en/memory)
 - [Node 22 TypeScript support](https://nodejs.org/docs/latest-v22.x/api/typescript.html): tests explicitly enable type stripping for Node 22 releases before it became the default.
+
+## 2026-09-18 local resource contract update
+
+The template now declares dependencies/resources, includes the resource SDK, and exports v2 packages with project assets and portable dependency bundles. External bindings remain Host-local. The updated tooling suite passed 6 tests, and the application test passed. Desktop separately validated resource/dependency archive import, configuration gating and source baselines.
+
+## 2026-09-20 authoring Skill
+
+Added the canonical `.agents/skills/floatboat-workbench/` Skill, 15 topic mappings, a generated Claude entry and the dependency-free guide CLI. Root AGENTS/README point to this entry; creation and runtime steps distinguish the standalone checkout from a registered Host workbench. Source alignment and reference notices are recorded in `docs/skill-provenance.md`.
+
+Validation:
+
+- `pnpm test:tooling`: 12 passed (6 existing application/toolchain cases and 6 Skill cases).
+- `pnpm test`: 1 passed; the command also typechecks/builds the application and SDK.
+- `pnpm skills:check`: all 15 topic files and Markdown links resolve; the generated Claude entry matches the canonical discovery metadata.
+- skill-creator quick_validate.py: canonical and Claude entry both valid.
+- Compared topics.json to Desktop getWorkbenchAuthoringGuideInputSchema: the 15 topic names match exactly.
+- A temporary copy without node_modules can print runtime guidance from a different cwd and creates no preview/config/build directories. Unknown topics fail; sync is idempotent and preserves unrelated or handwritten skills.
+- `git diff --check` and the updated OpenSpec strict validation passed.
+
+No additional live Codex/Claude session, Windows session or authorized platform call was launched for this documentation/tooling change. Discovery directories follow the linked official conventions; model behavior is not inferred from file checks. The repository remains private; public visibility and licensing are unchanged.
