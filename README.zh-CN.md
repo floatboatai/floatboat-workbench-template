@@ -14,7 +14,7 @@ pnpm test
 pnpm dev
 ```
 
-打开终端输出的完整地址。Ctrl+C 停止；源码改动后重新运行 `pnpm dev`。首版不提供热更新。预览数据保存在忽略的 `.local/data/`，重启不会清空，打包不会带上这些数据。
+打开终端输出的完整地址。`pnpm dev` 会监听源码保存，在独立快照上校验，通过后安全重启服务并自动刷新同一页面。校验失败继续使用旧版本；启动失败恢复旧服务和数据。页面临时状态可能重置。Ctrl+C 停止；预览数据保存在忽略的 `.local/data/`，重启不会清空，打包不会带上这些数据。单次预览可用 `pnpm dev -- --no-watch`；修改模板 SDK、工具链或安装依赖后需重启命令。
 
 给外部 AI 的提示词：
 
@@ -41,7 +41,24 @@ runtime 主题提供 Host 创建工具与模板本地命令的对应关系；其
 
 ## 交付
 
-执行 `pnpm workbench:pack`，在 `artifacts/` 得到 `.fbworkbench` 源码应用包。相同文件已存在时会拒绝覆盖，可指定新的绝对路径。导入 Floatboat 后会重建并创建独立空间；不会覆盖原有工作台，也不会自动上架。
+在模板仓库根目录执行：
+
+```sh
+pnpm run package
+# 与上述命令等价，保留现有入口：
+pnpm workbench:pack
+# 可指定新的绝对路径：
+pnpm run package -- --output /absolute/path/project-tracker.fbworkbench
+```
+
+命令会校验源码，在 `artifacts/` 生成 `.fbworkbench` 并输出完整路径。这是 package.json 中的打包脚本；`pnpm pack` 生成的 npm 归档不能作为工作台导入。
+
+1. 打开 Floatboat → **我的 → 工作台 → 导入工作台**。
+2. 选择 `.fbworkbench` 文件，核对内容并确认导入。
+3. 客户端自动下载锁定的依赖、构建并初始化新的独立空间；缺少依赖时需要联网。
+4. 按客户端提示完成信任、资源绑定和平台服务授权，再打开工作台。
+
+开发及生成文件包无需 Floatboat Agent。导入受客户端兼容性和权限校验约束；入口不可见时见 [平台边界](docs/platform.md)。包内包含源码、迁移、声明的固定资源和可移植 Workflow/Combo 依赖，排除 node_modules、编译产物、SDK 产物、预览业务数据与凭据。相同输出文件已存在时会拒绝覆盖。导入不会覆盖原有工作台，也不会自动上架。
 
 本地页面、服务和数据库真实可用；模型、Agent、ASR、工作流、日程等平台调用尚未连接时返回 `HOST_NOT_CONNECTED`。通过 Floatboat 导入、信任与授权后再验收这些能力，见 [平台边界](docs/platform.md)。
 

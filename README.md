@@ -16,7 +16,7 @@ pnpm test
 pnpm dev
 ```
 
-Open the complete loopback URL printed by the last command. Ctrl+C stops the service; preview data persists in `.local/data/`. Restart `pnpm dev` after editing source. The first check builds the included SDK and compiler from source. After cloning this repository with authorized access, no Desktop checkout or platform credentials are needed for local preview. Node's SQLite module is experimental in this runtime profile; the launcher suppresses that known warning, not application errors.
+Open the complete loopback URL printed by the last command. `pnpm dev` watches source saves, checks an isolated snapshot, then safely restarts the service and refreshes the same page. Check failures keep the previous version; startup failures restore its data and service. Page state may reset. Ctrl+C stops the preview; data persists in `.local/data/`. Use `pnpm dev -- --no-watch` for a single run. Restart the command after changing template SDK/tooling or installing dependencies. The first check builds the included SDK and compiler from source. After cloning this repository with authorized access, no Desktop checkout or platform credentials are needed for local preview. Node's SQLite module is experimental in this runtime profile; the launcher suppresses that known warning, not application errors.
 
 Use this prompt from the repository root:
 
@@ -55,11 +55,17 @@ The runtime topic maps Host authoring tools to the local CLI. SDK topics explain
 ## Deliver
 
 ```sh
+pnpm run package
+# Equivalent existing command
 pnpm workbench:pack
 # Optional: an absolute custom destination
 pnpm workbench:pack -- --output /absolute/path/project-tracker.fbworkbench
 ```
 
-The package contains application source, migrations, tests, declared fixed resources and portable Workflow/Combo bundles. It excludes preview data, credentials, node_modules, generated SDK and compiled output. Existing output files are preserved: choose a new destination or explicitly remove an obsolete artifact. Floatboat can import the source package into a **new independent workspace** and rebuild it with its own toolchain. Imports are subject to its compatibility and trust checks; the package does not update an existing installation or submit a store listing.
+The command prints the `.fbworkbench` path under `artifacts/` and import instructions. It is a package.json script for Floatboat application delivery; `pnpm pack` creates an npm archive and is not the import format.
+
+In Floatboat, open **My → Workbenches → Import workbench**, select the file, review its details and confirm import. The client downloads locked dependencies, builds the source and initializes a **new independent workspace**. Import needs network access for missing dependencies and passes the client's compatibility, access and trust checks. Bind resources and authorize declared platform services after importing. Floatboat Agent is not needed to create the package. See [platform connection](docs/platform.md) if the entry is unavailable.
+
+The package contains application source, migrations, tests, declared fixed resources and portable Workflow/Combo bundles. It excludes preview data, credentials, node_modules, generated SDK and compiled output. Existing output files are preserved: choose a new destination or explicitly remove an obsolete artifact. Import does not update an existing installation or submit a store listing.
 
 Platform features are a separate integration: [connection boundary](docs/platform.md). Application metadata and releases: [manifest contract](docs/manifest.md). Toolchain changes and license readiness: [maintenance](docs/maintenance.md).

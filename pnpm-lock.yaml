@@ -33,6 +33,9 @@ importers:
       '@types/yazl':
         specifier: 3.3.1
         version: 3.3.1
+      chokidar:
+        specifier: 5.0.0
+        version: 5.0.0
       esbuild:
         specifier: 0.27.2
         version: 0.27.2
@@ -374,6 +377,10 @@ packages:
     resolution: {integrity: sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==}
     engines: {node: '>=8.0.0'}
 
+  chokidar@5.0.0:
+    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
+    engines: {node: '>= 20.19.0'}
+
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
@@ -435,6 +442,10 @@ packages:
   react@19.2.3:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
     engines: {node: '>=0.10.0'}
+
+  readdirp@5.1.1:
+    resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
+    engines: {node: '>= 20.19.0'}
 
   rollup@4.63.3:
     resolution: {integrity: sha512-1i2XreiAoMMXuPGD6Msj2xWrMMkHojNRKivInxGQcg7/1KuPuYlfUutLyh4drnOxUTHX9cHI4wFoat8D/NKaBw==}
@@ -699,6 +710,10 @@ snapshots:
 
   buffer-crc32@1.0.0: {}
 
+  chokidar@5.0.0:
+    dependencies:
+      readdirp: 5.1.1
+
   csstype@3.2.3: {}
 
   entities@6.0.1: {}
@@ -767,6 +782,8 @@ snapshots:
       scheduler: 0.27.0
 
   react@19.2.3: {}
+
+  readdirp@5.1.1: {}
 
   rollup@4.63.3:
     dependencies:

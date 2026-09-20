@@ -191,18 +191,18 @@
     {
       "source": "src/main/workbench/sdk/host-contracts.mts",
       "destination": "sdk/host-contracts.mts",
-      "sourceSha256": "e159e774deed3f6f1632a9511c0684f6c0d1503e836b36d71864f94e3196c227",
+      "sourceSha256": "5402d73a55442e3f25d0eac8b455c82ca48cd2bf5afab8f13eb7110d9a3fad0f",
       "adapted": false,
       "extractedSha256": "e159e774deed3f6f1632a9511c0684f6c0d1503e836b36d71864f94e3196c227",
-      "candidateSha256": "e159e774deed3f6f1632a9511c0684f6c0d1503e836b36d71864f94e3196c227"
+      "candidateSha256": "5402d73a55442e3f25d0eac8b455c82ca48cd2bf5afab8f13eb7110d9a3fad0f"
     },
     {
       "source": "src/main/workbench/sdk/host.mts",
       "destination": "sdk/host.mts",
-      "sourceSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2",
+      "sourceSha256": "31481bc60f82db0420ee3628b5626885188a7bf395c1bed44534289bf2beb949",
       "adapted": false,
       "extractedSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2",
-      "candidateSha256": "3b31f0c38f42c075c9cf367abfd92ae12deb895dbfa076916c9ed807274414a2"
+      "candidateSha256": "31481bc60f82db0420ee3628b5626885188a7bf395c1bed44534289bf2beb949"
     },
     {
       "source": "src/main/workbench/sdk/maintenance.mts",
@@ -271,10 +271,10 @@
     {
       "source": "src/common/workbench/workbenchManifest.ts",
       "destination": "tooling/contracts/workbenchManifest.ts",
-      "sourceSha256": "7c77d45e5342c426e5f65b6711c8c3aecfaf5126f2b4d3537842716f307256e7",
+      "sourceSha256": "9440dc476ef36a6103b38cbde88247a6f3eba5758160492ee56332dc63bde8a8",
       "adapted": true,
       "extractedSha256": "872013e720596930bb3f3ab8acca3f27b004fac44b499789f2033fa2104eecca",
-      "candidateSha256": "a73c206a5f71c350a659327d0cc2d0181728953e0436a4e7a99b2cc06b97e1de"
+      "candidateSha256": "47f004f4761d71911387c21ffb7f38b651e086694e32f341c4c299cf3740dd39"
     },
     {
       "source": "src/common/workbench/workbenchCompilation.ts",
@@ -331,6 +331,13 @@
       "sourceSha256": "087d974e03d2f780c9c36f6f688e34963671dc89362993a63de725dde02faad7",
       "candidateSha256": "087d974e03d2f780c9c36f6f688e34963671dc89362993a63de725dde02faad7",
       "extractedSha256": "087d974e03d2f780c9c36f6f688e34963671dc89362993a63de725dde02faad7"
+    },
+    {
+      "source": "src/common/workbench/workbenchConnections.ts",
+      "destination": "tooling/contracts/workbenchConnections.ts",
+      "adapted": false,
+      "sourceSha256": "eeda1be4f07a6e39a852d1bb2e1ad91717fc6b0a6616340b2a7da8e2eeb2bc59",
+      "candidateSha256": "df91ae7230c3ad94f1f237744ea69923144965c11a420c6b219c79d120bd5f61"
     }
   ],
   "additionalContractSources": [

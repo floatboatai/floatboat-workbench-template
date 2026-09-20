@@ -74,6 +74,14 @@ export interface ConnectionReference {
   connectionId: string;
 }
 
+export interface ConnectionResult {
+  requestId: string;
+  status: 'requested' | 'connected' | 'cancelled' | 'failed' | 'expired';
+  connection?: ConnectionReference;
+  error?: string;
+}
+export type ConnectionRequest = { service: string; provider?: never } | { provider: string; service?: never };
+
 export type CalendarProvider = 'floatboat_calendar' | 'system_calendar';
 
 export interface CalendarFields {
@@ -156,15 +164,38 @@ export interface HostClient {
     events(input: { runId: string; afterSequence?: number }, options?: CallOptions): AsyncIterable<WorkflowEvent>;
   };
   connectedServices: {
+    searchProviders(input?: {
+      query?: string;
+      pageSize?: number;
+      pageToken?: string;
+    }): Promise<{
+      providers: Array<{
+        provider: string;
+        service: string;
+        displayName: string;
+        description: string;
+        authTypes: string[];
+        source: string;
+        authorization: string;
+      }>;
+      nextPageToken: string | null;
+    }>;
+    getConnection(input: { service: string }): Promise<ConnectionReference | null>;
+    getConnectionRequest(input: { requestId: string }): Promise<ConnectionResult>;
+    cancelConnectionRequest(input: { requestId: string }): Promise<ConnectionResult>;
+    connect(input: { service: string }, options?: CallOptions): Promise<ConnectionResult>;
     search(
       input: { provider?: string; query?: string; domain?: string; pageSize?: number; pageToken?: string },
       options?: CallOptions,
     ): Promise<unknown>;
     describe(input: { capability: string }, options?: CallOptions): Promise<unknown>;
     listConnections(input: { provider: string }): Promise<{ connections: ConnectionReference[] }>;
-    requestConnection(input: { provider: string }): Promise<{ status: 'requested'; requestId: string }>;
+    requestConnection(input: ConnectionRequest): Promise<{ status: 'requested'; requestId: string }>;
     call(
-      input: { capability: string; connectionId: string; params?: Record<string, unknown> },
+      input: { capability: string; params?: Record<string, unknown> } & (
+        | { connectionId: string; service?: never }
+        | { service: string; connectionId?: never }
+      ),
       options?: CallOptions,
     ): Promise<unknown>;
   };

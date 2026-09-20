@@ -1,5 +1,19 @@
 # Local verification — 2026-09-18
 
+## 2026-09-20 Standalone live reload and package handoff
+
+`pnpm dev` now watches source, validates isolated snapshots and reloads a stable authenticated preview page. Build failures retain the old version; startup failures restore its data and service. `pnpm run package` aliases the existing `.fbworkbench` exporter and prints Floatboat import instructions. README and the canonical authoring Skill cover standalone and Host update behavior.
+
+Validated locally on macOS arm64 / Node 22.22.2 / pnpm 10.22.0:
+
+- Tooling suite: 14 passed; the extended live-preview suite passed 2 cases, covering initial failure cleanup plus real saves, generated-output exclusion, active-work waiting, database/file persistence, startup rollback, subsequent recovery and stop during rebuild. Together these cover 15 distinct tooling cases.
+- A fresh copy without generated files, dependencies, Desktop configuration or data completed frozen installation, initialization, application test/typecheck/build and `pnpm run package`.
+- Real Chrome: authenticated iframe startup, refresh, automatic save reload, failed save retaining the previous page, correction, missing-link state, 1280px/375px screenshots and SIGINT cleanup passed with no page/console errors. Preview status supports English and Chinese.
+- Current Desktop transfer worker inspected the generated application package: 18 source files, 15,481 application bytes, zero data bytes, no warnings. This validates archive compatibility, not the full Electron import/trust journey.
+- Skill links/discovery validation and canonical skill format validation passed; changes remain local and unpushed.
+
+Windows/Linux, authorized platform services and a full Electron installation were not exercised in this update. Persistent preview data is excluded from exported packages.
+
 Validated on macOS arm64 with Node 22.22.2 and pnpm 10.22.0. The candidate was copied to a clean temporary directory with no node_modules, generated files, preview data or access to Desktop source through its commands.
 
 | Check | Result |
@@ -48,3 +62,9 @@ Validation:
 - `git diff --check` and the updated OpenSpec strict validation passed.
 
 No additional live Codex/Claude session, Windows session or authorized platform call was launched for this documentation/tooling change. Discovery directories follow the linked official conventions; model behavior is not inferred from file checks. The repository remains private; public visibility and licensing are unchanged.
+
+## 2026-09-20 Connector authorization integration
+
+Added portable `connectedServices` declarations and synchronized the Host SDK for requesting/observing authorization, reading account bindings and calling a logical service. The authoring guide distinguishes pre-authorization catalog discovery from runtime execution and Host-local account bindings.
+
+The existing 12 tooling tests and 1 application test passed. A new targeted export test verified that service declarations survive `.fbworkbench` packaging while personal connectionId fields are rejected by the manifest. Final application/SDK check and skills:check passed. Desktop separately passed 114 focused tests, a packaged Electron cancellation flow, and browser fixture checks at desktop and narrow widths. No real Gmail OAuth or Gmail business operation was performed. These changes are local and have not been pushed.

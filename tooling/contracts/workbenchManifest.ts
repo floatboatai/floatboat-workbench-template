@@ -1,6 +1,7 @@
 // ABOUTME: 工作台 manifest、安装记录与本地运行状态的跨进程契约。
 
 import { z } from 'zod';
+import { workbenchServiceDeclarationSchema } from './workbenchConnections';
 import { workbenchDependencySchema, workbenchResourceSchema, validateWorkbenchAssetDeclarations } from './workbenchAssets';
 export const WORKBENCH_REGISTRY_NAME_PATTERN = /^[a-z0-9](?:[a-z0-9_-]{0,126}[a-z0-9])?$/u;
 export const WORKBENCH_STORE_SEMVER_PATTERN = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/u;
@@ -81,12 +82,18 @@ export const workbenchManifestSchema = z
       .default([]),
     dependencies: z.array(workbenchDependencySchema).max(64).optional(),
     resources: z.array(workbenchResourceSchema).max(64).optional(),
+    connectedServices: z.array(workbenchServiceDeclarationSchema).max(32).optional(),
     contributions: z.array(workbenchContributionSchema).max(30).default([]),
     license: z.string().max(100).optional(),
   })
   .strict()
   .superRefine((manifest, context) => {
     validateWorkbenchAssetDeclarations(manifest, context);
+    if (manifest.connectedServices?.length && !manifest.capabilities.includes('connected-services'))
+      context.addIssue({ code: 'custom', path: ['connectedServices'], message: '服务声明需要 connected-services 能力' });
+    const services = manifest.connectedServices?.map(item => item.id) ?? [];
+    if (new Set(services).size !== services.length)
+      context.addIssue({ code: 'custom', path: ['connectedServices'], message: '服务逻辑标识不能重复' });
     if (manifest.build && (manifest.server !== 'dist/server/index.mjs' || manifest.ui !== 'dist/ui'))
       context.addIssue({
         code: 'custom',

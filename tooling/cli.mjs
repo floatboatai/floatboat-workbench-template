@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { application, repository, prepareTools, checkApplication, readManifest, runNode } from './build.mjs';
 import { startPreview } from './preview.mjs';
+import { startLivePreview } from './live-preview.mjs';
 import { exportApplication } from './package.mjs';
 
 export async function initializeApplication({ registry, name, description }, root = application) {
@@ -23,9 +24,10 @@ export async function main(args) {
   const [command = 'help', ...rest] = args;
   const { values } = parseArgs({ args: rest.filter((arg) => arg !== '--'), options: {
     registry: { type: 'string' }, name: { type: 'string' }, description: { type: 'string' }, output: { type: 'string' },
+    'no-watch': { type: 'boolean', default: false },
   }, strict: true });
   if (!['init', 'check', 'preview', 'pack', 'test'].includes(command)) {
-    console.log('Commands: init --registry my-app --name "My App" --description "Purpose" | check | preview | pack [--output /absolute/app.fbworkbench] | test');
+    console.log('Commands: init --registry my-app --name "My App" --description "Purpose" | check | preview [--no-watch] | pack [--output /absolute/app.fbworkbench] | test');
     if (command !== 'help') process.exitCode = 1;
     return;
   }
@@ -44,15 +46,19 @@ export async function main(args) {
     const manifest = await readManifest();
     const destination = values.output ?? join(repository, 'artifacts', `${manifest.registryName ?? 'workbench'}-${manifest.version}.fbworkbench`);
     const result = await exportApplication(destination);
-    console.log(`Application package: ${destination}\n${result.files.length} source files; no preview data included.`);
+    console.log(`Application package: ${destination}\n${result.files.length} source files; no preview data included.\nImport in Floatboat: My → Workbenches → Import workbench.\nFloatboat installs dependencies and initializes a new workspace. No Floatboat Agent is required to create this package.`);
   } else {
-    await checkApplication();
-    const preview = await startPreview();
+    let preview;
+    if (values['no-watch']) { await checkApplication(); preview = await startPreview(); }
+    else preview = await startLivePreview(application, { onStatus: ({ phase, message }) => {
+      if (message) console.error(message);
+      else console.log(`Preview: ${phase}`);
+    } });
     let stopRequested = false;
     const shutdown = () => { if (!stopRequested) { stopRequested = true; void preview.stop(); } };
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
-    console.log(`Local preview: ${preview.browserUrl}\nPlatform: not connected. Ctrl+C stops the service. Restart this command after source changes.`);
+    console.log(`Local preview: ${preview.browserUrl}\nPlatform: not connected. Ctrl+C stops the service. ${values['no-watch'] ? 'Restart after source changes.' : 'Source saves are checked and reloaded automatically.'}`);
     const result = await preview.closed;
     process.removeListener('SIGINT', shutdown);
     process.removeListener('SIGTERM', shutdown);

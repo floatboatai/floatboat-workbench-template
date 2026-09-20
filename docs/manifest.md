@@ -18,3 +18,7 @@ The validator is `tooling/contracts/workbenchManifest.ts`. `pnpm workbench:check
 Core defaults include `schemaVersion: 1`, `runtime: node22-sqlite-v1`, `sdkVersion: 1.0.0`, build profile `typescript-react-v1`, server `dist/server/index.mjs`, UI `dist/ui`, migrations `migrations`. Metadata beyond the required build contract is encouraged without inventing unsupported capabilities, compatibility or a license.
 
 Workflow/Combo dependencies and file resources use `dependencies` and `resources`; see [resources](resources.md). Absolute local bindings do not belong in manifest.
+
+## Connector services
+
+Declare `connectedServices: [{ "id": "mail", "provider": "connector:gmail" }]` with the `connected-services` capability. The logical id travels with source; Host stores each user’s authorized account binding separately. See the [authoring guide](../.agents/skills/floatboat-workbench/references/connected-services.md).

@@ -60,6 +60,6 @@ export async function startPreview(root = application) {
     // 服务就绪后不再需要配置文件，立即删除，避免终端重复信号打断异步清理。
     await rm(configPath, { force: true });
     return { url, browserUrl: `${url}/#workbench-page=${config.pageToken}`, config, configPath, closed, stop,
-      logs: () => output };
+      logs: () => output, exited: () => exited };
   } catch (error) { await stop(); throw error; }
 }

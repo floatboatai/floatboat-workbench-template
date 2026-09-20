@@ -20,8 +20,8 @@ The template works **without Floatboat**. Use the repository CLI for this checko
    ```
    Choose values from the user's business goal. `registryName` is a readable English coordinate; display names may be Chinese. Read [engineering](references/engineering.md) and [design](references/design.md) when creating the application; maintain `app/ENGINEERING.md` and `app/DESIGN.md` with the decisions used.
 3. Implement the requested flow in `app/src/`, using the references below for the domains touched. Keep manifest declarations synchronized with implemented behavior. Use `app/sdk/*.d.mts` after the first check, or `sdk/*.mts` before generation, for exact signatures.
-4. Run `pnpm workbench:check` and `pnpm test`. Then run `pnpm dev`, open the complete printed URL and exercise the real primary flow, persistence and failure states. Restart the command after source changes. Use [verification](references/verification.md) to distinguish build, business, visual and Host results.
-5. When handing off an application, run `pnpm workbench:pack` and report the resulting `.fbworkbench` path. Export creates a source package for a new Host installation. Publishing, changing repository visibility or selecting a license requires the corresponding user request.
+4. Run `pnpm workbench:check` and `pnpm test`. Then run `pnpm dev`, open the complete printed URL and exercise the real primary flow, persistence and failure states. Source saves are checked and reloaded automatically; see [runtime](references/runtime.md) for failure recovery and single-run preview. Use [verification](references/verification.md) to distinguish build, business, visual and Host results.
+5. When handing off an application, run `pnpm run package` (alias of `pnpm workbench:pack`), report the resulting `.fbworkbench` path and explain **Floatboat → My → Workbenches → Import workbench**. Export creates a source package for a new Host installation; see repository `docs/platform.md` for dependency setup and authorization. Publishing, changing repository visibility or selecting a license requires the corresponding user request.
 
 ## Read only the relevant topics
 

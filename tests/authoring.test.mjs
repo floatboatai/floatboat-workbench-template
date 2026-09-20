@@ -11,6 +11,23 @@ import { exportApplication } from '../tooling/package.mjs';
 
 before(prepareTools);
 
+test('Connector 声明可随包交付，个人 connectionId 被 manifest 校验拒绝', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  manifest.capabilities = ['connected-services'];
+  manifest.connectedServices = [{ id: 'mail', provider: 'connector:gmail' }];
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  const destination = join(directory, 'connector.fbworkbench');
+  await exportApplication(destination, root);
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const unpacked = join(directory, 'unpacked');
+  await unpackWorkbench(destination, unpacked);
+  const imported = JSON.parse(await readFile(join(unpacked, 'application/manifest.json'), 'utf8'));
+  assert.deepEqual(imported.connectedServices, manifest.connectedServices);
+  manifest.connectedServices[0].connectionId = 'personal-account';
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  await assert.rejects(checkApplication(root), /connectionId/);
+});
+
 test('声明的固定资源与 Workflow 随包交付，业务资源只保留声明，本机绑定缺失阻止导出', async (t) => {
   const { directory, root, manifest } = await fixture(t);
   await mkdir(join(root, 'templates'));

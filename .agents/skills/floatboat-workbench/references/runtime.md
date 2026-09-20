@@ -8,14 +8,20 @@ Use Node 22.16+ within 22.x and the pnpm version pinned in package.json. The rep
 | Read guidance | `pnpm workbench:guide -- --topic runtime` | `get_workbench_authoring_guide` |
 | Check | `pnpm workbench:check` | `check_workbench_project` |
 | Test | `pnpm test` uses `app/tests/*.test.ts` | Run project tests using the available Host toolchain |
-| Run | `pnpm dev`; restart after editing | `workbench_runtime open` applies the current source |
+| Run | `pnpm dev`; source saves trigger checked live reload | `workbench_runtime open` applies the current source |
 | Show UI | Open the complete URL printed by the preview | `workbench.open` shows the registered Workspace panel |
 | Inspect failures | Read check output and the preview terminal | `workbench_runtime status/logs` |
 | Stop | Ctrl+C in the preview terminal | `workbench_runtime stop`; closing the panel keeps the service alive |
 | Refresh SDK | Adopt a reviewed template SDK/tooling update, then check | `workbench_runtime refresh-sdk` preserves a backup |
-| Export | `pnpm workbench:pack` or `-- --output /absolute/path/app.fbworkbench` | Host export can also include registered business data |
+| Export | `pnpm run package` / `pnpm workbench:pack`, optionally `-- --output /absolute/path/app.fbworkbench` | Host export can also include registered business data |
 
 Host tool names are mappings, not shell commands to invent in an external session. Developer Pair applies to an already registered/trusted Host instance; it does not connect an arbitrary clone. Use the export/import path described in repository `docs/platform.md` for current integration.
+
+## Source updates
+
+Standalone `pnpm dev` keeps a fixed preview URL, coalesces source saves and builds an isolated snapshot. A passing check waits for active work, backs up preview data, restarts the service and refreshes the page. A check failure leaves the old version running; a startup failure restores the old data and service. Read the terminal diagnostics and fix the source; the next save retries. Page state may reset. Generated files, dependencies and local data do not trigger rebuilds. Use `pnpm dev -- --no-watch` for one run; restart after changing SDK/tooling, installing dependencies or changing appId. Ctrl+C closes the watcher and services while retaining preview data. If recovery itself fails, preserve the reported recovery directory and diagnose before starting again.
+
+In Floatboat, ordinary panel opening reuses the last validated version. Explicit refresh or `workbench_runtime open` validates current source. The panel's lightning toggle enables automatic source updates for that installed workbench; it is off by default. Closing the panel keeps its service alive. This Host preference is local and does not belong in manifest.json or an exported package.
 
 The server entry in `app/src/server/index.ts` creates one application:
 

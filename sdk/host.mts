@@ -2,6 +2,7 @@
 
 import type {
   CallOptions,
+  ConnectionResult,
   HostClient,
   HostConnection,
   ModelEvent,
@@ -203,6 +204,56 @@ export function createHostClient(
       events: (input, options) => events<WorkflowEvent>('workflows', 'events', input, options),
     },
     connectedServices: {
+      searchProviders: (input = {}) => request('connected-services', 'searchProviders', input),
+      getConnection: (input) => request('connected-services', 'getConnection', input),
+      getConnectionRequest: (input) => request('connected-services', 'getConnectionRequest', input),
+      cancelConnectionRequest: (input) => request('connected-services', 'cancelConnectionRequest', input),
+      connect: async (input, options = {}) => {
+        const signal = options.signal
+          ? AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs ?? 10 * 60_000)])
+          : AbortSignal.timeout(options.timeoutMs ?? 10 * 60_000);
+        signal.throwIfAborted();
+        const initial = await request<ConnectionResult>('connected-services', 'requestConnection', input, {
+          requestId: options.requestId,
+        });
+        try {
+          signal.throwIfAborted();
+          let result = initial;
+          while (result.status === 'requested') {
+            await new Promise<void>((resolve, reject) => {
+              const finish = () => {
+                signal.removeEventListener('abort', abort);
+                resolve();
+              };
+              const timer = setTimeout(finish, 500);
+              const abort = () => {
+                clearTimeout(timer);
+                signal.removeEventListener('abort', abort);
+                reject(signal.reason);
+              };
+              signal.addEventListener('abort', abort, { once: true });
+              if (signal.aborted) abort();
+            });
+            result = await request<ConnectionResult>(
+              'connected-services',
+              'getConnectionRequest',
+              { requestId: initial.requestId },
+              { signal },
+            );
+          }
+          return result;
+        } catch (error) {
+          if (signal.aborted) {
+            await request(
+              'connected-services',
+              'cancelConnectionRequest',
+              { requestId: initial.requestId },
+              { timeoutMs: 5000 },
+            ).catch(() => undefined);
+          }
+          throw error;
+        }
+      },
       search: (input, options) => request('connected-services', 'search', input, options),
       describe: (input, options) => request('connected-services', 'describe', input, options),
       listConnections: (input) => request('connected-services', 'listConnections', input),
