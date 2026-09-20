@@ -18,6 +18,8 @@ pnpm dev
 
 Open the complete loopback URL printed by the last command. `pnpm dev` watches source saves, checks an isolated snapshot, then safely restarts the service and refreshes the same page. Check failures keep the previous version; startup failures restore its data and service. Page state may reset. Ctrl+C stops the preview; data persists in `.local/data/`. Use `pnpm dev -- --no-watch` for a single run. Restart the command after changing template SDK/tooling or installing dependencies. The first check builds the included SDK and compiler from source. After cloning this repository with authorized access, no Desktop checkout or platform credentials are needed for local preview. Node's SQLite module is experimental in this runtime profile; the launcher suppresses that known warning, not application errors.
 
+With a compatible Floatboat client running and signed in, `pnpm dev` automatically connects standard Host SDK capabilities, including Agent and LLM. No import is required. See [platform connection](docs/platform.md) for permissions, reconnect and multiple-client selection.
+
 Use this prompt from the repository root:
 
 > Read AGENTS.md. Build a workbench for [users and business goal]. Record requirements, implement the business flow in app/, keep the manifest accurate, run checks and tests, and validate the real local preview.

@@ -9,7 +9,7 @@ Build the user's application in this repository's `app/`. Locate the repository 
 
 ## Choose the execution environment
 
-The template works **without Floatboat**. Use the repository CLI for this checkout. Floatboat authoring tools belong to a registered Desktop workbench and are not prerequisites for local development. The [runtime guide](references/runtime.md) maps the two environments. Local preview has real HTTP and SQLite; Host capabilities return `HOST_NOT_CONNECTED` until validated in an authorized Host installation.
+The template works **without Floatboat**. Use the repository CLI for this checkout. Floatboat authoring tools belong to a registered Desktop workbench and are not prerequisites for local development. The [runtime guide](references/runtime.md) maps the two environments. Local preview has real HTTP and SQLite. A running compatible Floatboat client is discovered automatically for standard Host SDK calls; no import is required. Follow repository `docs/platform.md` for connection, permissions and offline behavior.
 
 ## Work sequence
 

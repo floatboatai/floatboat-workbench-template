@@ -1,3 +1,5 @@
+// 本地构建测试不连接开发者的真实账号，连接协议由独立测试覆盖。
+process.env.FLOATBOAT_HOST_MODE = 'offline';
 // ABOUTME: 验证外部创作到真实运行和归档的链路，不使用 Desktop 或替身数据库。
 import assert from 'node:assert/strict';
 import { test, before } from 'node:test';

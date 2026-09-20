@@ -63,3 +63,7 @@ pnpm run package -- --output /absolute/path/project-tracker.fbworkbench
 本地页面、服务和数据库真实可用；模型、Agent、ASR、工作流、日程等平台调用尚未连接时返回 `HOST_NOT_CONNECTED`。通过 Floatboat 导入、信任与授权后再验收这些能力，见 [平台边界](docs/platform.md)。
 
 [manifest 约定](docs/manifest.md) · [维护与版本](docs/maintenance.md) · [Agent 指引](AGENTS.md)
+
+## 外部开发时调用 Host 能力
+
+启动支持本连接协议的 Floatboat 并登录后，外部 `pnpm dev` 会自动连接标准工作台 SDK，直接调用 Agent、大模型等能力，无需先导入。客户端后启动或重启也会自动重连；账号权限和 manifest 声明仍然生效。离线调用返回 `HOST_NOT_CONNECTED`。多客户端选择与连接详情见 [平台连接](docs/platform.md)。

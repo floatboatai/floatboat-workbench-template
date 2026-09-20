@@ -19,4 +19,4 @@
 
 connectionId 是用户选择后的账号引用，可用于旧的显式连接调用；不要把开发者的 connectionId 写进源码、manifest、示例数据或导出包。声明可以分发，绑定由 Host 单独保存。更换账号通过再次请求连接并选择完成。
 
-独立预览保持 HOST_NOT_CONNECTED。外部创作工具若没有已授权的 Floatboat MCP 发现入口，先实现声明/UI 与不可用状态，明确标记真实 Connector 契约和授权验证尚未完成，不借用其他产品工具的 provider 标识。新版接口需要支持本协议的 Host；旧工程先 refresh-sdk，再 check/open。调用返回 unknown 的业务结果按实际 schema 校验；结果未知的外部写操作不自动重试。
+独立预览会自动连接运行中的 Floatboat，通过同一 SDK 执行发现与端内授权；客户端未连接时返回 HOST_NOT_CONNECTED。外部创作工具若没有已授权的 Floatboat MCP 发现入口，先实现声明/UI 与不可用状态，明确标记真实 Connector 契约和授权验证尚未完成，不借用其他产品工具的 provider 标识。新版接口需要支持本协议的 Host；旧工程先 refresh-sdk，再 check/open。调用返回 unknown 的业务结果按实际 schema 校验；结果未知的外部写操作不自动重试。

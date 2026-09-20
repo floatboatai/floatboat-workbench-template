@@ -15,7 +15,7 @@ Use Node 22.16+ within 22.x and the pnpm version pinned in package.json. The rep
 | Refresh SDK | Adopt a reviewed template SDK/tooling update, then check | `workbench_runtime refresh-sdk` preserves a backup |
 | Export | `pnpm run package` / `pnpm workbench:pack`, optionally `-- --output /absolute/path/app.fbworkbench` | Host export can also include registered business data |
 
-Host tool names are mappings, not shell commands to invent in an external session. Developer Pair applies to an already registered/trusted Host instance; it does not connect an arbitrary clone. Use the export/import path described in repository `docs/platform.md` for current integration.
+Host tool names are mappings, not shell commands to invent in an external session. External `pnpm dev` automatically connects to a compatible running Floatboat client for standard SDK calls; see repository `docs/platform.md`. Developer Pair remains separate and applies to an already registered/trusted Host instance.
 
 ## Source updates
 

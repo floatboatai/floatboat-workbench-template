@@ -206,16 +206,22 @@ export async function createWorkbenchServer(
     notify({ type: 'stopped', activeTasks });
     if (process.connected) process.disconnect?.();
   }
+  let resources = createWorkbenchResources(manifest.resources ?? [], config);
   process.on('message', (value: unknown) => {
     const message = value as {
       generation?: string;
       nonce?: string;
       type?: string;
       connection?: HostConnection | null;
+      resources?: Record<string, WorkbenchResourceBinding>;
     } | null;
     if (!message || message.generation !== config.generation || message.nonce !== config.nonce) return;
     if (message.type === 'shutdown') void close();
-    if (message.type === 'host-connection') hostConnection = message.connection;
+    if (message.type === 'host-connection') {
+      hostConnection = message.connection;
+      if (message.resources)
+        resources = createWorkbenchResources(manifest.resources ?? [], { ...config, resources: message.resources });
+    }
   });
   process.once('SIGTERM', () => {
     void close();
@@ -229,7 +235,10 @@ export async function createWorkbenchServer(
 
   return {
     manifest,
-    resources: createWorkbenchResources(manifest.resources ?? [], config),
+    resources: {
+      path: (...args) => resources.path(...args),
+      configured: (id) => resources.configured(id),
+    },
     database,
     host,
     trackTask,

@@ -132,7 +132,7 @@ export async function startLivePreview(root = application, { onStatus = () => {}
           backedUp = true;
         }
         if (stopped) return;
-        const next = await startPreview(snapshot);
+        const next = await startPreview(snapshot, { sourceDirectory: root });
         activate(next, snapshot);
         snapshot = undefined;
         appId = manifest.appId;
@@ -147,7 +147,7 @@ export async function startLivePreview(root = application, { onStatus = () => {}
               await rename(backup, previous.config.dataDirectory);
               await rm(failedData, { recursive: true, force: true });
             }
-            if (!stopped) activate(await startPreview(previousRoot), previousRoot);
+            if (!stopped) activate(await startPreview(previousRoot, { sourceDirectory: root }), previousRoot);
           } catch (recovery) {
             preserveRecovery = true;
             throw new Error(

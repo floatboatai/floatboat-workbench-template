@@ -63,6 +63,7 @@ export function createHostClient(
     refreshing = (async () => {
       const response = await fetch(new URL('/v1/refresh', current.url), {
         method: 'POST',
+        redirect: 'error',
         headers: { authorization: `Bearer ${current.token}` },
         signal: AbortSignal.timeout(10_000),
       });
@@ -88,6 +89,7 @@ export function createHostClient(
         const current = currentConnection();
         const response = await fetch(new URL(route, current.url), {
           method: 'POST',
+          redirect: 'error',
           headers: { 'content-type': 'application/json', authorization: `Bearer ${current.token}` },
           body: JSON.stringify(body),
           signal,

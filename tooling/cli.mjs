@@ -58,7 +58,7 @@ export async function main(args) {
     const shutdown = () => { if (!stopRequested) { stopRequested = true; void preview.stop(); } };
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
-    console.log(`Local preview: ${preview.browserUrl}\nPlatform: not connected. Ctrl+C stops the service. ${values['no-watch'] ? 'Restart after source changes.' : 'Source saves are checked and reloaded automatically.'}`);
+    console.log(`Local preview: ${preview.browserUrl}\nFloatboat connection status is reported above and updates automatically. Ctrl+C stops the service. ${values['no-watch'] ? 'Restart after source changes.' : 'Source saves are checked and reloaded automatically.'}`);
     const result = await preview.closed;
     process.removeListener('SIGINT', shutdown);
     process.removeListener('SIGTERM', shutdown);

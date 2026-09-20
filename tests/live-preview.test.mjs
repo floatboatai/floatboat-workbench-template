@@ -1,3 +1,5 @@
+// 本地构建测试不连接开发者的真实账号，连接协议由独立测试覆盖。
+process.env.FLOATBOAT_HOST_MODE = 'offline';
 // ABOUTME: 使用真实文件、HTTP 和数据库验证保存更新、失败恢复和停止边界。
 import assert from 'node:assert/strict';
 import { test, before } from 'node:test';

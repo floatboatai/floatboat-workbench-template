@@ -6,4 +6,4 @@ Use preview(draft) for normalized input and the short-lived one-use previewToken
 
 Use list/get/runs/archive with the returned bindingId for actual state. Keep the Host's trustLevel/actionCapabilities and App provenance; callers do not supply a made-up Agent session or workspace. Execution belongs to the workbench's still-valid installation workspace. Local scheduling stops when the Host exits.
 
-The exact draft is in `sdk/host-contracts.mts`. Standalone preview has no Host scheduler and returns HOST_NOT_CONNECTED. Test unavailable UI locally and validate real scheduling in an authorized installation; a preview token alone is not a created task.
+The exact draft is in `sdk/host-contracts.mts`. Connected standalone preview uses the real Host scheduler; offline calls return HOST_NOT_CONNECTED. Validate scheduling against the running client within the user’s authorized scope; a preview token alone is not a created task.
