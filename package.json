@@ -18,7 +18,8 @@
     "skills:sync": "node tooling/workbench-skill.mjs --write",
     "skills:check": "node tooling/workbench-skill.mjs --check",
     "test": "node tooling/cli.mjs test",
-    "test:tooling": "node --test --test-concurrency=1 tests/*.test.mjs"
+    "test:tooling": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "workbench:catalog": "node tooling/catalog.mjs"
   },
   "dependencies": {
     "lucide-react": "0.562.0",

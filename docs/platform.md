@@ -19,3 +19,9 @@ Discovery protocol v2 uses local endpoint descriptors without credentials. The S
 Run `pnpm run package` (alias `pnpm workbench:pack`), then use **Floatboat → My → Workbenches → Import workbench**. Floatboat checks access/compatibility, installs locked dependencies, builds source and initializes a new independent workspace. Preview business data is excluded. Import remains useful for managed lifecycle, panel contributions and distribution; external SDK development does not require it. Reimport creates another installation; use the release/update flow for existing installations.
 
 A `.tgz` from `pnpm pack`, a repository ZIP or raw `app/` folder is not a `.fbworkbench` package. Developer Pair remains available for an existing registered/trusted installation and refers to that installation's build/data; it is separate from automatic external connections.
+
+## Authoring catalog from external agents
+
+With Floatboat open and signed in, `pnpm workbench:catalog providers --query gmail`, `actions --provider connector:gmail --query messages`, and `describe --capability <returned-id>` query the fixed loopback endpoint `127.0.0.1:47831`. No application import or third-party account authorization is required for catalog metadata. Execution still uses the existing Host SDK connection and the user's account binding. The fixed endpoint cannot run actions.
+
+`HOST_CATALOG_PORT_IN_USE` means another process owns that port; Floatboat logs the failure and keeps its other features running. Only one instance provides this fixed endpoint at a time. Responses identify the instance, and `FLOATBOAT_HOST_INSTANCE` enforces an explicit selection. Do not point these commands at a public server. Old clients without this endpoint need upgrading/restarting. Domain/schema errors are returned as JSON error codes; they are not evidence that the user authorized execution.
