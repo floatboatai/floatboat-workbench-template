@@ -21,7 +21,7 @@ Host tool names are mappings, not shell commands to invent in an external sessio
 
 Standalone `pnpm dev` keeps a fixed preview URL, coalesces source saves and builds an isolated snapshot. A passing check waits for active work, backs up preview data, restarts the service and refreshes the page. A check failure leaves the old version running; a startup failure restores the old data and service. Read the terminal diagnostics and fix the source; the next save retries. Page state may reset. Generated files, dependencies and local data do not trigger rebuilds. Use `pnpm dev -- --no-watch` for one run; restart after changing SDK/tooling, installing dependencies or changing appId. Ctrl+C closes the watcher and services while retaining preview data. If recovery itself fails, preserve the reported recovery directory and diagnose before starting again.
 
-In Floatboat, ordinary panel opening reuses the last validated version. Explicit refresh or `workbench_runtime open` validates current source. The panel's lightning toggle enables automatic source updates for that installed workbench; it is off by default. Closing the panel keeps its service alive. This Host preference is local and does not belong in manifest.json or an exported package.
+In Floatboat, ordinary panel opening reuses the last validated version. Explicit refresh or `workbench_runtime open` validates current source. Eligible installed workbenches automatically validate saved source and update the running page; there is no panel toggle. Closing the panel keeps its service alive. Do not add a live-update flag to manifest.json.
 
 The server entry in `app/src/server/index.ts` creates one application:
 
@@ -34,4 +34,4 @@ await app.listen();
 
 Register routes before `listen`. Route handlers receive `request`, `url`, `params`, `body`, `database` and `host`; validate JSON bodies as unknown. `app.resources` resolves declared files. `app.action` handles declared Host actions. `app.trackTask` tracks local work and `app.tasks()` exposes its recorded state; use the [Agent API](agent.md) when tools and reasoning are needed.
 
-Preview startup owns `FLOATBOAT_WORKBENCH_CONFIG` and the page authorization URL. Keep configuration and tokens out of source, logs, screenshots and exported reports. The Node process has the developer's OS permissions; loopback/page authentication is not a filesystem sandbox. Preview data persists at `.local/data/<appId>/` and shutdown preserves it.
+Preview startup owns `FLOATBOAT_WORKBENCH_CONFIG`. Pages and the local Host SDK use ordinary loopback URLs without connection credentials; direct navigation and refresh work without a token. Keep local configuration out of application source and exports. The Node process has the developer's OS permissions; local endpoint access is not a filesystem sandbox. Preview data persists at `.local/data/<appId>/` and shutdown preserves it.

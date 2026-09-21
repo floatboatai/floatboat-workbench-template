@@ -79,18 +79,19 @@ await app.listen();`,
         force: true,
       });
     });
-    const headers = { 'x-workbench-preview-token': preview.token };
+    const headers = {};
     const status = async () => (await fetch(`${preview.url}/__preview/status`, { headers })).json();
     const api = async (path, method = 'GET') => {
       const current = await status();
       return (
         await fetch(`${current.url}${path}`, {
           method,
-          headers: { 'x-workbench-page-token': current.pageToken },
+          headers: {},
         })
       ).json();
     };
-    assert.equal((await fetch(`${preview.url}/__preview/status`)).status, 401);
+    assert.equal((await fetch(`${preview.url}/__preview/status`)).status, 200);
+    assert.equal(new URL(preview.browserUrl).hash, '');
     assert.equal(
       (
         await fetch(`${preview.url}/__preview/status`, {

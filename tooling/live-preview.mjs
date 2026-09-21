@@ -1,7 +1,6 @@
 // ABOUTME: 合并源码保存，在隔离快照上校验并安全替换预览进程，失败恢复旧服务与数据。
 import { cp, mkdir, mkdtemp, rename, rm } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { randomBytes } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { watch } from 'chokidar';
 import { application, repository, checkApplication } from './build.mjs';
@@ -33,7 +32,6 @@ const ignored = (root, path) =>
 export async function startLivePreview(root = application, { onStatus = () => {} } = {}) {
   await mkdir(join(repository, '.local'), { recursive: true, mode: 0o700 });
   const directory = await mkdtemp(join(repository, '.local/live-'));
-  const token = randomBytes(32).toString('hex');
   let active, activeRoot, appId, gateway, timer, running, stopPromise;
   let stopped = false;
   let switching = false;
@@ -52,7 +50,7 @@ export async function startLivePreview(root = application, { onStatus = () => {}
   const status = () => ({
     ...state,
     revision,
-    ...(active ? { url: active.url, pageToken: active.config.pageToken } : {}),
+    ...(active ? { url: active.url } : {}),
   });
   const watcher = watch(root, {
     ignoreInitial: true,
@@ -217,11 +215,10 @@ export async function startLivePreview(root = application, { onStatus = () => {}
       running = undefined;
     }
     if (requested !== initialSequence) schedule();
-    gateway = await createPreviewPage(token, status);
+    gateway = await createPreviewPage(status);
     return {
       url: gateway.url,
-      browserUrl: `${gateway.url}/#preview=${token}`,
-      token,
+      browserUrl: `${gateway.url}/`,
       closed,
       stop,
       status,

@@ -16,7 +16,7 @@ Manifest changes need check/pack validation even when the UI is unchanged. For d
 | ALREADY_INITIALIZED | Edit metadata in place and preserve appId |
 | APP_LOCKFILE_STALE / dependency mismatch | Reconcile package manifests, locks and installed versions; then check |
 | WORKBENCH_CHECK_FAILED / TS diagnostic | Fix the referenced source and rerun check |
-| PREVIEW_LINK_REQUIRED / 401 | Open the complete preview URL, keeping its page authorization in the local tab |
+| Local preview cannot load | Use the current ordinary URL printed by pnpm dev; inspect server errors and confirm a compatible protocol-v2 Floatboat client for Host calls. Do not add page tokens |
 | HOST_NOT_CONNECTED | Local preview is disconnected; start a compatible Floatboat client and check the launcher connection status |
 | WORKBENCH_DEPENDENCY_UNBOUND / RESOURCE_UNBOUND | Supply a portable declared bundle/resource or establish the Host-local binding |
 | Migration checksum or data-lock error | Preserve data and applied migrations; stop the owning preview or add a new migration |

@@ -1,4 +1,4 @@
-// ABOUTME: 工作台服务端使用的 HTTP/JSON/SSE 客户端，Host 凭据不进入页面或应用源码。
+// ABOUTME: 工作台服务端使用的 HTTP/JSON/SSE 客户端，按本地工作台上下文地址调用，不发送连接凭据。
 
 import type {
   CallOptions,
@@ -44,67 +44,29 @@ export function createHostClient(
   track: TrackTask = (operation) => operation(),
 ): HostClient {
   const getConnection = typeof connection === 'function' ? connection : () => connection;
-  let refreshedFrom: string | undefined;
-  let refreshedConnection: HostConnection | undefined;
-  let refreshing: Promise<void> | null = null;
   function currentConnection() {
-    const supplied = getConnection();
-    const current = supplied?.token === refreshedFrom ? refreshedConnection : supplied;
+    const current = getConnection();
     if (!current) throw new WorkbenchHostError({ code: 'HOST_NOT_CONNECTED' });
     const endpoint = new URL(current.url);
     if (endpoint.protocol !== 'http:' || endpoint.hostname !== '127.0.0.1' || endpoint.username || endpoint.password)
       throw new WorkbenchHostError({ code: 'HOST_ENDPOINT_INVALID' });
     return current;
   }
-  async function refresh(current: HostConnection) {
-    if (currentConnection().token !== current.token) return;
-    if (refreshing) return refreshing;
-    const suppliedToken = getConnection()?.token;
-    refreshing = (async () => {
-      const response = await fetch(new URL('/v1/refresh', current.url), {
+  async function transmit(route: string, body: unknown, options: CallOptions, streamSignal?: AbortSignal) {
+    const signal =
+      streamSignal ??
+      (options.signal
+        ? AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs ?? 120_000)])
+        : AbortSignal.timeout(options.timeoutMs ?? 120_000));
+    try {
+      const current = currentConnection();
+      return await fetch(`${current.url.replace(/\/$/u, '')}/${route.replace(/^\//u, '')}`, {
         method: 'POST',
         redirect: 'error',
-        headers: { authorization: `Bearer ${current.token}` },
-        signal: AbortSignal.timeout(10_000),
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+        signal,
       });
-      const result = (await response.json()) as HostResponse<HostConnection>;
-      if (!response.ok || result.error) throw new WorkbenchHostError(result.error ?? { code: 'HOST_REFRESH_FAILED' });
-      if (result.data?.url !== current.url || typeof result.data?.token !== 'string')
-        throw new WorkbenchHostError({ code: 'HOST_REFRESH_INVALID' });
-      if (getConnection()?.token === suppliedToken) {
-        refreshedFrom = suppliedToken;
-        refreshedConnection = result.data;
-      }
-    })().finally(() => {
-      refreshing = null;
-    });
-    return refreshing;
-  }
-  async function transmit(route: string, body: unknown, options: CallOptions) {
-    const signal = options.signal
-      ? AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs ?? 120_000)])
-      : AbortSignal.timeout(options.timeoutMs ?? 120_000);
-    try {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const current = currentConnection();
-        const response = await fetch(new URL(route, current.url), {
-          method: 'POST',
-          redirect: 'error',
-          headers: { 'content-type': 'application/json', authorization: `Bearer ${current.token}` },
-          body: JSON.stringify(body),
-          signal,
-        });
-        if (response.status !== 401 || attempt > 0) return response;
-        const failure = (await response
-          .clone()
-          .json()
-          .catch(() => null)) as HostResponse<unknown> | null;
-        if (failure?.error?.code !== 'HOST_CONNECTION_EXPIRED' || failure.error.execution !== 'not-executed')
-          return response;
-        await response.body?.cancel();
-        await refresh(current);
-      }
-      throw new WorkbenchHostError({ code: 'HOST_REFRESH_FAILED' });
     } catch (error) {
       if (error instanceof WorkbenchHostError) throw error;
       throw new WorkbenchHostError({ code: 'HOST_TRANSPORT_FAILED', execution: 'unknown' });
@@ -129,47 +91,134 @@ export function createHostClient(
     operation: string,
     input: unknown = {},
     options: CallOptions = {},
+    resumable = false,
   ): AsyncIterable<T> {
-    const response = await transmit('/v1/events', { domain, operation, input, requestId: options.requestId }, options);
-    if (!response.ok)
-      throw new WorkbenchHostError(
-        ((await response.json()) as HostResponse<unknown>).error ?? { code: 'HOST_REQUEST_FAILED' },
-      );
-    if (!response.body) throw new WorkbenchHostError({ code: 'HOST_STREAM_EMPTY', execution: 'unknown' });
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let terminal = false;
+    const controller = new AbortController();
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    const resetIdle = () => {
+      if (!resumable) return;
+      clearTimeout(idle);
+      idle = setTimeout(() => controller.abort(), 120_000);
+      idle.unref?.();
+    };
+    const subscriptionSignal = options.signal
+      ? AbortSignal.any([options.signal, controller.signal])
+      : controller.signal;
+    resetIdle();
     try {
-      while (true) {
-        const { value, done } = await reader.read();
-        buffer = (buffer + decoder.decode(value, { stream: !done })).replaceAll('\r\n', '\n');
-        if (buffer.length > 2_000_000)
-          throw new WorkbenchHostError({ code: 'HOST_STREAM_TOO_LARGE', execution: 'unknown' });
-        let end;
-        while ((end = buffer.indexOf('\n\n')) >= 0) {
-          const frame = buffer.slice(0, end);
-          buffer = buffer.slice(end + 2);
-          const data = frame
-            .split('\n')
-            .filter((line) => line.startsWith('data:'))
-            .map((line) => line.slice(5).trimStart())
-            .join('\n');
-          if (!data) continue;
-          const event = JSON.parse(data) as T & { error?: HostFailure };
-          if (event.type === 'error')
-            throw new WorkbenchHostError(event.error ?? { code: 'HOST_STREAM_FAILED', execution: 'unknown' });
-          if (event.type === 'done') terminal = true;
-          yield event;
+      const response = await transmit(
+        '/v1/events',
+        { domain, operation, input, requestId: options.requestId },
+        options,
+        resumable ? subscriptionSignal : undefined,
+      );
+      if (!response.ok)
+        throw new WorkbenchHostError(
+          ((await response.json()) as HostResponse<unknown>).error ?? { code: 'HOST_REQUEST_FAILED' },
+        );
+      if (!response.body) throw new WorkbenchHostError({ code: 'HOST_STREAM_EMPTY', execution: 'unknown' });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let terminal = false;
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          resetIdle();
+          buffer = (buffer + decoder.decode(value, { stream: !done })).replaceAll('\r\n', '\n');
+          if (buffer.length > 2_000_000)
+            throw new WorkbenchHostError({ code: 'HOST_STREAM_TOO_LARGE', execution: 'unknown' });
+          let end;
+          while ((end = buffer.indexOf('\n\n')) >= 0) {
+            const frame = buffer.slice(0, end);
+            buffer = buffer.slice(end + 2);
+            const data = frame
+              .split('\n')
+              .filter((line) => line.startsWith('data:'))
+              .map((line) => line.slice(5).trimStart())
+              .join('\n');
+            if (!data) continue;
+            const event = JSON.parse(data) as T & { error?: HostFailure };
+            if (event.type === 'error')
+              throw new WorkbenchHostError(event.error ?? { code: 'HOST_STREAM_FAILED', execution: 'unknown' });
+            if (event.type === 'done') terminal = true;
+            yield event;
+          }
+          if (done) break;
         }
-        if (done) break;
+        if (!terminal) throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
+      } catch (error) {
+        if (error instanceof WorkbenchHostError) throw error;
+        throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
+      } finally {
+        await reader.cancel().catch(() => undefined);
       }
-      if (!terminal) throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
-    } catch (error) {
-      if (error instanceof WorkbenchHostError) throw error;
-      throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
     } finally {
-      await reader.cancel().catch(() => undefined);
+      clearTimeout(idle);
+      controller.abort();
+    }
+  }
+
+  async function* agentEvents(
+    input: { runId: string; afterSequence?: number },
+    options: CallOptions = {},
+  ): AsyncIterable<AgentTaskEvent> {
+    const signal =
+      options.timeoutMs === undefined
+        ? options.signal
+        : options.signal
+          ? AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs)])
+          : AbortSignal.timeout(options.timeoutMs);
+    let cursor = input.afterSequence ?? 0;
+    let failures = 0;
+    let resultReceived = false;
+    while (true) {
+      signal?.throwIfAborted();
+      try {
+        for await (const event of events<AgentTaskEvent>(
+          'agent',
+          'events',
+          { ...input, afterSequence: cursor },
+          { ...options, signal },
+          true,
+        )) {
+          if (event.type === 'event') {
+            if (event.cursor <= cursor) continue;
+            cursor = event.cursor;
+            failures = 0;
+          }
+          if (event.type === 'result') resultReceived = true;
+          yield event;
+          if (event.type === 'done') return;
+        }
+        return;
+      } catch (error) {
+        if (resultReceived) return;
+        if (
+          signal?.aborted ||
+          !(error instanceof WorkbenchHostError) ||
+          !['HOST_STREAM_INTERRUPTED', 'HOST_TRANSPORT_FAILED'].includes(error.code) ||
+          ++failures > 3
+        )
+          throw error;
+        // 只恢复只读事件订阅，绝不重发 start 或其它业务动作。
+        await new Promise<void>((resolve, reject) => {
+          const abort = () => {
+            clearTimeout(timer);
+            signal?.removeEventListener('abort', abort);
+            reject(signal?.reason);
+          };
+          const timer = setTimeout(
+            () => {
+              signal?.removeEventListener('abort', abort);
+              resolve();
+            },
+            100 * 2 ** (failures - 1),
+          );
+          signal?.addEventListener('abort', abort, { once: true });
+          if (signal?.aborted) abort();
+        });
+      }
     }
   }
 
@@ -179,7 +228,7 @@ export function createHostClient(
       get: (input) => request('agent', 'get', input),
       list: (input) => request('agent', 'list', input),
       findByIdempotencyKey: (input) => request('agent', 'findByIdempotencyKey', input),
-      events: (input, options) => events<AgentTaskEvent>('agent', 'events', input, options),
+      events: (input, options) => agentEvents(input, options),
       cancel: (input) => request('agent', 'cancel', input),
     },
     asr: {

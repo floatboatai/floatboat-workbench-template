@@ -15,6 +15,7 @@ export interface AgentTaskRun {
   status: 'running' | 'cancelling' | 'completed' | 'failed' | 'cancelled' | 'interrupted';
   createdAt: number;
   completedAt: number | null;
+  /** 运行中为已接收文本快照，终态为最终结果或保留的部分输出。 */
   text: string;
   errorCode: string | null;
   usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };

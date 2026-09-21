@@ -9,7 +9,6 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 
 export interface HostConnection {
   url: string;
-  token: string;
 }
 
 export interface CallOptions {
@@ -41,8 +40,16 @@ export type ModelEvent =
   | { type: 'done'; requestId: string };
 
 export type WorkflowRunStatus =
-  | 'queued' | 'running' | 'waiting_for_user'
-  | 'succeeded' | 'failed' | 'skipped' | 'rejected' | 'timed_out' | 'emergency_stopped' | 'cancelled';
+  | 'queued'
+  | 'running'
+  | 'waiting_for_user'
+  | 'succeeded'
+  | 'failed'
+  | 'skipped'
+  | 'rejected'
+  | 'timed_out'
+  | 'emergency_stopped'
+  | 'cancelled';
 
 export interface WorkflowRun {
   id: string;
@@ -122,6 +129,7 @@ export interface HostClient {
     get(input: { runId: string }): Promise<AgentTaskRun>;
     list(input?: { limit?: number }): Promise<{ runs: AgentTaskRun[] }>;
     findByIdempotencyKey(input: { idempotencyKey: string }): Promise<AgentTaskRun | null>;
+    /** 只读订阅自动按游标恢复短暂断线；timeoutMs 限制整个订阅，不会取消任务。 */
     events(input: { runId: string; afterSequence?: number }, options?: CallOptions): AsyncIterable<AgentTaskEvent>;
     cancel(input: { runId: string }): Promise<{ accepted: boolean; run: AgentTaskRun }>;
   };
@@ -168,11 +176,7 @@ export interface HostClient {
     events(input: { runId: string; afterSequence?: number }, options?: CallOptions): AsyncIterable<WorkflowEvent>;
   };
   connectedServices: {
-    searchProviders(input?: {
-      query?: string;
-      pageSize?: number;
-      pageToken?: string;
-    }): Promise<{
+    searchProviders(input?: { query?: string; pageSize?: number; pageToken?: string }): Promise<{
       providers: Array<{
         provider: string;
         service: string;

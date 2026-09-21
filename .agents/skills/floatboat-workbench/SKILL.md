@@ -46,4 +46,4 @@ These topics are also available without installing dependencies through `node to
 
 ## Delivery boundary
 
-The UI calls its own API through `getPageConnection()`/`page.fetch`; Node, SQL and Host calls stay on the server. `.local/` holds persistent preview data and transient authorization material, and stays outside application source and exports. Use the user's actual authorization for external effects. Report unavailable platform integration or unavailable browser verification as unverified, not successful.
+The UI calls its own API through `getPageConnection()`/`page.fetch`; Node, SQL and Host calls stay on the server. `.local/` holds persistent preview data and transient runtime state, and stays outside application source and exports. Use the user's actual authorization for external effects. Report unavailable platform integration or unavailable browser verification as unverified, not successful.

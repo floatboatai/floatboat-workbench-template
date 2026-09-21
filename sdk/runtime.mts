@@ -22,7 +22,6 @@ interface StartConfiguration {
   appId: string;
   generation: string;
   nonce: string;
-  pageToken: string;
   sourceDirectory: string;
   dataDirectory: string;
   resources?: Record<string, WorkbenchResourceBinding>;
@@ -45,7 +44,7 @@ export async function createWorkbenchServer(
   const configurationPath = options.configPath ?? process.env.FLOATBOAT_WORKBENCH_CONFIG;
   if (!configurationPath || !isAbsolute(configurationPath)) throw new Error('WORKBENCH_START_CONFIGURATION_REQUIRED');
   const config = JSON.parse(await readFile(configurationPath, 'utf8')) as StartConfiguration;
-  for (const key of ['appId', 'generation', 'nonce', 'pageToken', 'sourceDirectory', 'dataDirectory'] as const) {
+  for (const key of ['appId', 'generation', 'nonce', 'sourceDirectory', 'dataDirectory'] as const) {
     if (typeof config[key] !== 'string' || !config[key])
       throw new Error(`WORKBENCH_START_CONFIGURATION_INVALID:${key}`);
   }
@@ -145,8 +144,6 @@ export async function createWorkbenchServer(
       return send(response, await trackTask(async () => action(body.input), `action:${body.action}`));
     }
     if (requestUrl.pathname.startsWith('/api/')) {
-      if (!equalToken(request.headers['x-workbench-page-token'], config.pageToken))
-        return send(response, { error: { code: 'APP_PAGE_UNAUTHORIZED' } }, 401);
       if (request.headers.origin && request.headers.origin !== url)
         return send(response, { error: { code: 'APP_ORIGIN_INVALID' } }, 403);
       for (const route of routes) {
@@ -285,7 +282,7 @@ export async function createWorkbenchServer(
       notify({ type: 'ready', appId: config.appId, url, pid: process.pid, activeTasks });
       if (!process.connected)
         process.stdout.write(
-          `${JSON.stringify({ type: 'ready', url, pid: process.pid, ...(config.development ? { browserUrl: `${url}/#workbench-page=${encodeURIComponent(config.pageToken)}` } : {}) })}\n`,
+          `${JSON.stringify({ type: 'ready', url, pid: process.pid, ...(config.development ? { browserUrl: `${url}/` } : {}) })}\n`,
         );
       return { url, close };
     },

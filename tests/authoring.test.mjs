@@ -116,7 +116,7 @@ test('类型错误和浏览器越界导入保持阻断', async (t) => {
   assert.ok(diagnostics.some((issue) => issue.code === 'WORKBENCH_BROWSER_SERVER_IMPORT'));
 });
 
-test('独立 HTTP、平台未连接、页面鉴权、SQLite 持久化和退出清理', async (t) => {
+test('独立无凭据 HTTP、平台未连接、Origin 校验、SQLite 持久化和退出清理', async (t) => {
   const { root } = await fixture(t);
   await writeFile(join(root, 'migrations/0002_test.sql'), 'CREATE TABLE preview_notes (text TEXT NOT NULL);');
   const entry = join(root, 'src/server/index.ts');
@@ -130,8 +130,8 @@ await app.listen();`));
   t.after(() => preview.stop());
   await assert.rejects(access(preview.configPath));
   assert.equal(new URL(preview.url).hostname, '127.0.0.1');
-  let headers = { 'x-workbench-page-token': preview.config.pageToken };
-  assert.equal((await fetch(`${preview.url}/api/app`)).status, 401);
+  const headers = {};
+  assert.equal((await fetch(`${preview.url}/api/app`)).status, 200);
   assert.equal((await fetch(`${preview.url}/api/app`, { headers: { ...headers, origin: 'https://example.com' } })).status, 403);
   assert.equal((await (await fetch(`${preview.url}/api/app`, { headers })).json()).platform, 'not-connected');
   assert.equal((await (await fetch(`${preview.url}/api/platform-probe`, { headers })).json()).error.code, 'HOST_NOT_CONNECTED');
@@ -142,8 +142,8 @@ await app.listen();`));
   await assert.rejects(access(previous.configPath));
   await assert.rejects(fetch(`${previous.url}/api/app`));
   preview = await startPreview(root);
-  headers = { 'x-workbench-page-token': preview.config.pageToken };
-  assert.notEqual(preview.config.pageToken, previous.config.pageToken);
+  assert.equal(preview.config.pageToken, undefined);
+  assert.equal(new URL(preview.browserUrl).hash, '');
   assert.deepEqual(await (await fetch(`${preview.url}/api/notes`, { headers })).json(), [{ text: 'persisted' }]);
 });
 

@@ -1,9 +1,8 @@
-// ABOUTME: 固定预览入口沿用 SDK 的 iframe 授权协议，更新服务不改变浏览器地址。
+// ABOUTME: 固定预览入口沿用 SDK 的 iframe 主题与语言协议，更新服务不改变浏览器地址。
 import { createServer } from 'node:http';
-import { timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
-export async function createPreviewPage(token, getStatus) {
+export async function createPreviewPage(getStatus) {
   const script = await readFile(new URL('./preview-page-client.mjs', import.meta.url));
   let url;
   const server = createServer((request, response) => {
@@ -26,10 +25,6 @@ export async function createPreviewPage(token, getStatus) {
       return send(403, 'text/plain', 'Forbidden');
     if (request.method !== 'GET') return send(405, 'text/plain', 'Method not allowed');
     if (request.url === '/__preview/status') {
-      const supplied = Buffer.from(String(request.headers['x-workbench-preview-token'] ?? ''));
-      const expected = Buffer.from(token);
-      if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected))
-        return send(401, 'text/plain', 'Unauthorized');
       return send(200, 'application/json', JSON.stringify(getStatus()));
     }
     if (request.url === '/__preview/client.mjs') return send(200, 'text/javascript', script);

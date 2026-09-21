@@ -3,7 +3,7 @@ import { lstat, readFile, readdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-function safeAddress(value) {
+function safeAddress(value, connection = false) {
   const url = new URL(value);
   if (
     url.protocol !== "http:" ||
@@ -11,7 +11,7 @@ function safeAddress(value) {
     !url.port ||
     url.username ||
     url.password ||
-    url.pathname !== "/" ||
+    (!connection && url.pathname !== "/") ||
     url.search ||
     url.hash
   )
@@ -70,7 +70,6 @@ export async function connectLocalHost(
       method: "POST",
       redirect: "error",
       headers: {
-        authorization: `Bearer ${host.token}`,
         "content-type": "application/json",
       },
       body: JSON.stringify(body),
@@ -98,14 +97,13 @@ export async function connectLocalHost(
               await readFile(join(directory, name), "utf8"),
             );
             if (
-              host.protocol !== 1 ||
+              host.protocol !== 2 ||
               host.instance !== name.slice(0, -5) ||
-              !/^[a-f0-9]{64}$/.test(host.token) ||
               (selected && host.instance !== selected)
             )
               return null;
             safeAddress(host.url);
-            if ((await post(host, "/status", {})).protocol !== 1) return null;
+            if ((await post(host, "/status", {})).protocol !== 2) return null;
             return host;
           } catch {
             return null;
@@ -132,9 +130,9 @@ export async function connectLocalHost(
       }
       descriptor = hosts[0];
       const result = await post(descriptor, "/connect", input, 15000);
-      if (!result.lease || !result.connection?.token)
+      if (!result.lease || !result.connection?.url)
         throw new Error("HOST_CONNECTION_INVALID");
-      safeAddress(result.connection.url);
+      safeAddress(result.connection.url, true);
       lease = result.lease;
       selected = descriptor.instance;
       if (!stopping) {

@@ -22,9 +22,9 @@ pnpm dev
 pnpm workbench:pack
 ```
 
-The tooling tests exercise initialization safety, invalid manifest/source links, authenticated real HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
+The tooling tests exercise initialization safety, invalid manifest/source links, credential-free local HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
 
-Standalone live reload lives in `tooling/live-preview.mjs` and the fixed preview page, leaving SDK/runtime contracts unchanged. It checks immutable source snapshots, waits for tracked work, backs up persistent data after stopping the old service and restores data on startup failure. Test actual saves, build/start failures, subsequent recovery and shutdown. The tooling suite runs files sequentially because preparation shares `.generated/`. `package` and `workbench:pack` route to the same source exporter; this is not npm registry publishing.
+Standalone live reload lives in `tooling/live-preview.mjs` and the fixed preview page. Local transport protocol v2 removes page/preview/Bearer credentials while preserving account and process context. It checks immutable source snapshots, waits for tracked work, backs up persistent data after stopping the old service and restores data on startup failure. Test actual saves, build/start failures, subsequent recovery and shutdown. The tooling suite runs files sequentially because preparation shares `.generated/`. `package` and `workbench:pack` route to the same source exporter; this is not npm registry publishing.
 
 ## Authoring guidance
 

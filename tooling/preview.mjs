@@ -20,7 +20,6 @@ export async function startPreview(
     dataDirectory: join(local, "data", manifest.appId),
     generation: randomUUID(),
     nonce: randomBytes(32).toString("hex"),
-    pageToken: randomBytes(32).toString("hex"),
     hostConnection: null,
     development: true,
   };
@@ -138,7 +137,7 @@ export async function startPreview(
     await rm(configPath, { force: true });
     return {
       url,
-      browserUrl: `${url}/#workbench-page=${config.pageToken}`,
+      browserUrl: `${url}/`,
       config,
       configPath,
       closed,

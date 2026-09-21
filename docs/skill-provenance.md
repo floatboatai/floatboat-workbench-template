@@ -25,3 +25,7 @@ The connected-services reference now follows Desktop `resources/workbench-author
 ## Startup and source update guidance (2026-09-20)
 
 The runtime and verification topics now describe this repository's checked live preview and `.fbworkbench` package handoff. Host ordinary-open versus explicit-refresh behavior and the local lightning toggle were checked against Desktop `WorkbenchLifecycleService`, `WorkbenchServerChannel` and `WorkbenchLiveUpdateService`. Standalone implementation remains in template tooling and reuses the existing browser SDK handshake; this change introduces no SDK or manifest version requirement.
+
+## Local transport and Agent progress (2026-09-21)
+
+Aligned with Desktop commit `9555ab8809a3064cc5936a51fd9c37a8725a6846`: ordinary local URLs replace page-token handshakes; automatic checked updates need no user toggle. The Agent guide covers idle timeouts, cursor recovery, partial snapshots and Host-owned tool history. Earlier snapshot descriptions above are historical.
