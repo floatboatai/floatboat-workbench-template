@@ -1,6 +1,14 @@
 // ABOUTME: 独立工作台服务端可消费的 Host SDK 公开类型。
 
-import type { AgentTaskInput, AgentTaskRun, AgentTaskEvent } from './agent-contracts.mjs';
+import type {
+  AgentTaskInput,
+  AgentTaskRun,
+  AgentTaskEvent,
+  AgentConversation,
+  AgentConversationCreate,
+  AgentConversationSend,
+  AgentConversationMessage,
+} from './agent-contracts.mjs';
 import type { AsrStartInput, AsrSession, AsrEvent } from './asr-contracts.mjs';
 export type * from './agent-contracts.mjs';
 export type * from './asr-contracts.mjs';
@@ -125,6 +133,20 @@ export interface AutomationDraft {
 
 export interface HostClient {
   agent: {
+    conversations: {
+      create(input: AgentConversationCreate): Promise<AgentConversation>;
+      list(input?: {
+        offset?: number;
+        limit?: number;
+      }): Promise<{ conversations: AgentConversation[]; nextOffset: number | null }>;
+      get(input: { conversationId: string }): Promise<AgentConversation>;
+      messages(input: {
+        conversationId: string;
+        offset?: number;
+        limit?: number;
+      }): Promise<{ messages: AgentConversationMessage[]; nextOffset: number | null }>;
+      send(input: AgentConversationSend, options?: CallOptions): Promise<{ runId: string }>;
+    };
     start(input: AgentTaskInput, options?: CallOptions): Promise<{ runId: string }>;
     get(input: { runId: string }): Promise<AgentTaskRun>;
     list(input?: { limit?: number }): Promise<{ runs: AgentTaskRun[] }>;

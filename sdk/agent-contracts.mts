@@ -11,6 +11,7 @@ export interface AgentTaskInput {
 export interface AgentTaskRun {
   runId: string;
   sessionId: string;
+  conversationId?: string;
   workspaceId: string;
   status: 'running' | 'cancelling' | 'completed' | 'failed' | 'cancelled' | 'interrupted';
   createdAt: number;
@@ -31,3 +32,30 @@ export type AgentTaskEvent =
   | { type: 'event'; cursor: number; event: AgentTaskProgress }
   | { type: 'result'; cursor: number; run: AgentTaskRun }
   | { type: 'done'; requestId: string };
+
+export interface AgentConversation {
+  conversationId: string;
+  title: string;
+  workingDirectory: string;
+  model?: string;
+  createdAt: number;
+  activeRunId: string | null;
+}
+export interface AgentConversationCreate {
+  title?: string;
+  workingDirectory: string;
+  model?: string;
+  idempotencyKey: string;
+}
+export interface AgentConversationSend {
+  conversationId: string;
+  prompt: string;
+  idempotencyKey: string;
+  model?: string;
+  timeoutMs?: number;
+}
+export interface AgentConversationMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+}

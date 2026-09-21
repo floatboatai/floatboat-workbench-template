@@ -224,6 +224,13 @@ export function createHostClient(
 
   return {
     agent: {
+      conversations: {
+        create: (input) => request('agent', 'conversationCreate', input),
+        list: (input = {}) => request('agent', 'conversationList', input),
+        get: (input) => request('agent', 'conversationGet', input),
+        messages: (input) => request('agent', 'conversationMessages', input),
+        send: (input, options) => request('agent', 'conversationSend', input, options),
+      },
       start: (input, options) => request('agent', 'start', input, options),
       get: (input) => request('agent', 'get', input),
       list: (input) => request('agent', 'list', input),

@@ -143,10 +143,10 @@
     {
       "source": "src/main/workbench/sdk/agent-contracts.mts",
       "destination": "sdk/agent-contracts.mts",
-      "sourceSha256": "1936a0ff9edb5148df22bf55680ea90235f98caf04373e59ca86fe056651fc7f",
+      "sourceSha256": "a935b5fa54a25750672d1234a33bcdfa1a16fbae6cd1ac1d3ececf351d137759",
       "adapted": false,
-      "extractedSha256": "1936a0ff9edb5148df22bf55680ea90235f98caf04373e59ca86fe056651fc7f",
-      "candidateSha256": "1936a0ff9edb5148df22bf55680ea90235f98caf04373e59ca86fe056651fc7f"
+      "extractedSha256": "a935b5fa54a25750672d1234a33bcdfa1a16fbae6cd1ac1d3ececf351d137759",
+      "candidateSha256": "a935b5fa54a25750672d1234a33bcdfa1a16fbae6cd1ac1d3ececf351d137759"
     },
     {
       "source": "src/main/workbench/sdk/asr-contracts.mts",
@@ -191,18 +191,18 @@
     {
       "source": "src/main/workbench/sdk/host-contracts.mts",
       "destination": "sdk/host-contracts.mts",
-      "sourceSha256": "e74e11d588c65b38e957da6ce75c429c0908056dd8a4f59ec9bcfc2e1b10893c",
+      "sourceSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca",
       "adapted": false,
-      "extractedSha256": "e74e11d588c65b38e957da6ce75c429c0908056dd8a4f59ec9bcfc2e1b10893c",
-      "candidateSha256": "e74e11d588c65b38e957da6ce75c429c0908056dd8a4f59ec9bcfc2e1b10893c"
+      "extractedSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca",
+      "candidateSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca"
     },
     {
       "source": "src/main/workbench/sdk/host.mts",
       "destination": "sdk/host.mts",
-      "sourceSha256": "58f30aef0249751e7d09b4a0789280ae0615ae1b0cbb6e5438eb1c4b7f4f514c",
+      "sourceSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
       "adapted": false,
-      "extractedSha256": "58f30aef0249751e7d09b4a0789280ae0615ae1b0cbb6e5438eb1c4b7f4f514c",
-      "candidateSha256": "58f30aef0249751e7d09b4a0789280ae0615ae1b0cbb6e5438eb1c4b7f4f514c"
+      "extractedSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
+      "candidateSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65"
     },
     {
       "source": "src/main/workbench/sdk/maintenance.mts",
@@ -364,5 +364,11 @@
     "date": "2026-09-21",
     "sourceCommit": "9555ab8809a3064cc5936a51fd9c37a8725a6846",
     "scope": "src/main/workbench/sdk/*.mts; local transport v2 and recoverable Agent events"
+  },
+  "agentConversationRevision": {
+    "date": "2026-09-21",
+    "sourceChange": "add-workbench-agent-conversations",
+    "sourceStatus": "Committed Desktop implementation; hashes identify exact SDK sources.",
+    "sourceCommit": "7024c16e22f249a11e26a3dd3fdd55479564590b"
   }
 }
