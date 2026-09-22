@@ -22,7 +22,7 @@ pnpm dev
 pnpm workbench:pack
 ```
 
-The tooling tests exercise initialization safety, invalid manifest/source links, credential-free local HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
+The tooling tests exercise external resource snapshots, opt-in data export with the SDK lock and SQLite backup, initialization safety, invalid manifest/source links, credential-free local HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
 
 Standalone live reload lives in `tooling/live-preview.mjs` and the fixed preview page. Local transport protocol v2 removes page/preview/Bearer credentials while preserving account and process context. It checks immutable source snapshots, waits for tracked work, backs up persistent data after stopping the old service and restores data on startup failure. Test actual saves, build/start failures, subsequent recovery and shutdown. The tooling suite runs files sequentially because preparation shares `.generated/`. `package` and `workbench:pack` route to the same source exporter; this is not npm registry publishing.
 
@@ -31,3 +31,5 @@ Standalone live reload lives in `tooling/live-preview.mjs` and the fixed preview
 Edit `.agents/skills/floatboat-workbench/SKILL.md` and its references. `topics.json` keeps the topic names aligned with the Host guide; `tooling/guide.mjs` reads these files without building or installing dependencies. `pnpm skills:sync` regenerates only the Claude entry, preserving unrelated skills; `pnpm skills:check` reports missing references or a stale entry. Commit both discovery entries when publishing repository changes so fresh checkouts have the Skill before running setup.
 
 When Host APIs or authoring topics change, compare the sources recorded in [skill provenance](skill-provenance.md), update the corresponding portable guide and preserve the distinction between a standalone checkout and an installed Host instance. Validate command examples against package.json and signatures against the included SDK. The content should remain usable without the Desktop source repository.
+
+Data-bearing export adapts `WorkbenchDataSnapshot.ts` from Desktop using the same snapshot schema and data lock. `--bindings` controls export only; it does not read private Host settings or change runtime bindings. Keep tests for both application and migration packages.

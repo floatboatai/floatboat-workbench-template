@@ -338,6 +338,15 @@
       "adapted": false,
       "sourceSha256": "eeda1be4f07a6e39a852d1bb2e1ad91717fc6b0a6616340b2a7da8e2eeb2bc59",
       "candidateSha256": "df91ae7230c3ad94f1f237744ea69923144965c11a420c6b219c79d120bd5f61"
+    },
+    {
+      "source": "src/main/workbench/transfer/WorkbenchDataSnapshot.ts",
+      "destination": "tooling/transfer/WorkbenchDataSnapshot.ts",
+      "sourceCommit": "9d3abc515",
+      "sourceSha256": "abf9fbc265e9e607762d5d6b5ebce69fd1a817114d65ae3fea4e02bc152997e7",
+      "adapted": true,
+      "extractedSha256": "13c000cfe23138d6278265f93ed07169392918521d9d7adbd0da1518f769a605",
+      "candidateSha256": "13c000cfe23138d6278265f93ed07169392918521d9d7adbd0da1518f769a605"
     }
   ],
   "additionalContractSources": [

@@ -163,3 +163,76 @@ test('源码包可验证读取，预览数据、工具链和运行产物不进�
   await assert.rejects(exportApplication(destination, root), /EEXIST/);
   assert.deepEqual(await readFile(destination), original);
 });
+
+test('外部固定资源与显式业务数据打包，rebind 不复制且本机路径不泄露', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  const external = join(directory, 'external');
+  const dataDirectory = join(repository, '.local/data', manifest.appId);
+  await mkdir(external);
+  await mkdir(join(dataDirectory, 'files'), { recursive: true });
+  await writeFile(join(external, 'template.txt'), 'fixed');
+  await writeFile(join(external, 'record.txt'), 'business');
+  await writeFile(join(dataDirectory, 'files/note.txt'), 'managed');
+  manifest.resources = [
+    { id: 'template', role: 'asset', location: 'external', kind: 'file' },
+    { id: 'records', role: 'data', location: 'external', kind: 'file' },
+    { id: 'files', role: 'data', location: 'data', path: 'files', kind: 'directory' },
+    { id: 'drive', role: 'data', location: 'external', kind: 'directory', transfer: 'rebind' },
+  ];
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  const bindings = { resources: { template: join(external, 'template.txt'), records: join(external, 'record.txt'), drive: external } };
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const { validateWorkbenchAssetTransfer } = await import('../.generated/assets.mjs');
+  for (const includeData of [false, true]) {
+    const output = join(directory, `external-${includeData}.fbworkbench`);
+    const info = await exportApplication(output, root, { bindings, includeData });
+    assert.equal(info.kind, includeData ? 'migration' : 'application');
+    const unpacked = join(directory, `unpacked-${includeData}`);
+    await unpackWorkbench(output, unpacked);
+    const imported = JSON.parse(await readFile(join(unpacked, 'application/manifest.json'), 'utf8'));
+    const lock = await validateWorkbenchAssetTransfer(unpacked, imported);
+    assert.deepEqual(lock.resources.map((entry) => entry.status), ['bundled', includeData ? 'bundled' : 'excluded', includeData ? 'bundled' : 'excluded', 'rebind']);
+    assert.ok(!JSON.stringify(lock).includes(directory));
+    assert.ok(!JSON.stringify(imported).includes(directory));
+    const fixed = lock.resources[0];
+    assert.equal(await readFile(join(unpacked, fixed.directory, 'file'), 'utf8'), 'fixed');
+    if (includeData) {
+      assert.equal(await readFile(join(unpacked, 'data/files/note.txt'), 'utf8'), 'managed');
+      assert.equal(JSON.parse(await readFile(join(unpacked, 'operation-history.json'), 'utf8')).coverage, 'unknown');
+      const { validateSnapshot } = await import('../.generated/data-snapshot.mjs');
+      await validateSnapshot(unpacked);
+    }
+  }
+  await assert.rejects(exportApplication(join(directory, 'bad.fbworkbench'), root, { bindings: { resources: { typo: external } } }), /BINDING/);
+});
+
+test('带数据导出备份真实 SQLite，拒绝活动写入及外部链接，失败不留下包', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  const data = join(repository, '.local/data', manifest.appId);
+  await mkdir(data, { recursive: true });
+  const { DatabaseSync } = await import('node:sqlite');
+  const db = new DatabaseSync(join(data, 'data.sqlite'));
+  db.exec("PRAGMA journal_mode=WAL; CREATE TABLE _workbench_migrations(name TEXT, hash TEXT); CREATE TABLE notes(value TEXT); INSERT INTO notes VALUES ('retained');");
+  const { acquireWorkbenchDataLock } = await import('../.generated/sdk/data-lock.mjs');
+  const release = await acquireWorkbenchDataLock(data, manifest.appId);
+  const output = join(directory, 'data.fbworkbench');
+  try { await assert.rejects(exportApplication(output, root, { includeData: true }), /WORKBENCH_DATA_IN_USE/); }
+  finally { await release(); db.close(); }
+  await assert.rejects(access(output));
+  await exportApplication(output, root, { includeData: true });
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const unpacked = join(directory, 'database-unpacked');
+  await unpackWorkbench(output, unpacked);
+  const { validateSnapshot } = await import('../.generated/data-snapshot.mjs');
+  await validateSnapshot(unpacked);
+  const restored = new DatabaseSync(join(unpacked, 'data/data.sqlite'), { readOnly: true });
+  try { assert.equal(restored.prepare('SELECT value FROM notes').get().value, 'retained'); }
+  finally { restored.close(); }
+  manifest.resources = [{ id: 'outside', kind: 'file', role: 'asset', location: 'external' }];
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  const link = join(directory, 'link');
+  await symlink(join(root, 'manifest.json'), link);
+  await assert.rejects(exportApplication(join(directory, 'link.fbworkbench'), root, { bindings: { resources: { outside: link } } }), /SYMLINK/);
+  await assert.rejects(access(join(directory, 'link.fbworkbench')));
+  await assert.rejects(exportApplication(join(directory, 'relative.fbworkbench'), root, { bindings: { resources: { outside: 'relative.txt' } } }), /BINDING/);
+});

@@ -68,6 +68,8 @@ The command prints the `.fbworkbench` path under `artifacts/` and import instruc
 
 In Floatboat, open **My → Workbenches → Import workbench**, select the file, review its details and confirm import. The client downloads locked dependencies, builds the source and initializes a **new independent workspace**. Import needs network access for missing dependencies and passes the client's compatibility, access and trust checks. Bind resources and authorize declared platform services after importing. Floatboat Agent is not needed to create the package. See [platform connection](docs/platform.md) if the entry is unavailable.
 
-The package contains application source, migrations, tests, declared fixed resources and portable Workflow/Combo bundles. It excludes preview data, credentials, node_modules, generated SDK and compiled output. Existing output files are preserved: choose a new destination or explicitly remove an obsolete artifact. Import does not update an existing installation or submit a store listing.
+The package contains application source, migrations, tests, declared fixed resources and portable Workflow/Combo bundles. By default it excludes preview data; use `--include-data` to include it. It always excludes credentials, node_modules, generated SDK and compiled output. Existing output files are preserved: choose a new destination or explicitly remove an obsolete artifact. Import does not update an existing installation or submit a store listing.
 
 Platform features are a separate integration: [connection boundary](docs/platform.md). Application metadata and releases: [manifest contract](docs/manifest.md). Toolchain changes and license readiness: [maintenance](docs/maintenance.md).
+
+For external resource snapshots, pass `--bindings .local/export-bindings.json`; see [resource export](docs/resources.md#模板-cli-导出外部资源) for the mapping and `--include-data`.

@@ -1,6 +1,6 @@
-// ABOUTME: 独立创作仅打包工程内可分发依赖和固定资源，本机绑定交由接收端 Host 完成。
+// ABOUTME: 按声明与显式本机绑定打包资源快照，不交付绝对路径。
 import { mkdir, copyFile, lstat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, isAbsolute, parse, relative } from 'node:path';
 import * as yauzl from 'yauzl';
 
 async function assertSource(root, relative) {
@@ -32,7 +32,20 @@ async function assertPortableCombo(file) {
   }));
 }
 
-export async function packDeclaredAssets(manifest, root, staging, contents) {
+export function validateResourceBindings(manifest, bindings = { resources: {} }) {
+  if (!bindings || typeof bindings !== 'object' || Array.isArray(bindings) ||
+      Object.keys(bindings).some((key) => key !== 'resources') ||
+      !bindings.resources || typeof bindings.resources !== 'object' || Array.isArray(bindings.resources))
+    throw new Error('WORKBENCH_BINDINGS_INVALID');
+  for (const [id, path] of Object.entries(bindings.resources)) {
+    if (!manifest.resources?.some((item) => item.id === id && item.location === 'external') ||
+        typeof path !== 'string' || !isAbsolute(path)) throw new Error(`WORKBENCH_BINDING_INVALID:${id}`);
+  }
+  return bindings.resources;
+}
+
+export async function packDeclaredAssets(manifest, root, staging, contents, { bindings, includeData = false, dataDirectory } = {}) {
+  const bound = validateResourceBindings(manifest, bindings);
   if (!manifest.dependencies?.length && !manifest.resources?.length) return;
   const { hashTransferFile } = await import('../.generated/archive.mjs');
   const { writeWorkbenchAssetTransfer } = await import('../.generated/assets.mjs');
@@ -51,13 +64,22 @@ export async function packDeclaredAssets(manifest, root, staging, contents) {
     lock.dependencies.push({ id: item.id, kind: item.kind, status: 'bundled', file: `dependencies/${file}`, sha256: await hashTransferFile(join(dependencyDirectory, file)) });
   }
   for (const item of manifest.resources ?? []) {
-    if (item.transfer === 'rebind' || item.role === 'data') { lock.resources.push({ id: item.id, status: item.transfer === 'rebind' ? 'rebind' : 'excluded', bytes: 0, files: 0 }); continue; }
-    if (item.location === 'external') {
+    if (item.transfer === 'rebind' || (item.role === 'data' && !includeData)) { lock.resources.push({ id: item.id, status: item.transfer === 'rebind' ? 'rebind' : 'excluded', bytes: 0, files: 0 }); continue; }
+    let source;
+    try {
+      if (item.location === 'external') {
+        if (!Object.hasOwn(bound, item.id)) throw Object.assign(new Error('unbound'), { code: 'ENOENT' });
+        const absolute = bound[item.id];
+        const anchor = parse(absolute).root;
+        source = await assertSource(anchor, relative(anchor, absolute).split('\\').join('/'));
+      } else source = await assertSource(item.location === 'data' ? dataDirectory : root, item.path);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
       if (item.required) throw new Error(`WORKBENCH_RESOURCE_UNBOUND:${item.id}`);
       lock.resources.push({ id: item.id, status: 'missing', bytes: 0, files: 0 }); continue;
     }
-    resources.push({ id: item.id, kind: item.kind, source: await assertSource(root, item.path), destination: `assets/${item.id}` });
+    resources.push({ id: item.id, kind: item.kind, source, destination: `${item.role === 'data' ? 'resource-data' : 'assets'}/${item.id}` });
     lock.resources.push({ id: item.id, status: 'bundled', bytes: 0, files: 0 });
   }
-  await writeWorkbenchAssetTransfer(contents, { lock, resources, dependencyDirectory }, true);
+  await writeWorkbenchAssetTransfer(contents, { lock, resources, dependencyDirectory }, !includeData);
 }

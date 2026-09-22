@@ -16,7 +16,7 @@ Discovery protocol v2 uses local endpoint descriptors without credentials. The S
 
 ## Deliver to a managed installation
 
-Run `pnpm run package` (alias `pnpm workbench:pack`), then use **Floatboat → My → Workbenches → Import workbench**. Floatboat checks access/compatibility, installs locked dependencies, builds source and initializes a new independent workspace. Preview business data is excluded. Import remains useful for managed lifecycle, panel contributions and distribution; external SDK development does not require it. Reimport creates another installation; use the release/update flow for existing installations.
+Run `pnpm run package` (alias `pnpm workbench:pack`), then use **Floatboat → My → Workbenches → Import workbench**. Floatboat checks access/compatibility, installs locked dependencies, builds source and initializes a new independent workspace. Preview business data is excluded by default; `--include-data` exports it after stopping preview. External snapshot resources use `--bindings`; see [resources](resources.md). Import remains useful for managed lifecycle, panel contributions and distribution; external SDK development does not require it. Reimport creates another installation; use the release/update flow for existing installations.
 
 A `.tgz` from `pnpm pack`, a repository ZIP or raw `app/` folder is not a `.fbworkbench` package. Developer Pair remains available for an existing registered/trusted installation and refers to that installation's build/data; it is separate from automatic external connections.
 

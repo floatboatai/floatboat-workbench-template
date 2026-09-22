@@ -1,6 +1,6 @@
 // ABOUTME: 外部 Agent 与开发者共用的工作台创作命令入口。
 import { parseArgs } from 'node:util';
-import { readdir, writeFile } from 'node:fs/promises';
+import { readdir, writeFile, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
@@ -24,13 +24,16 @@ export async function main(args) {
   const [command = 'help', ...rest] = args;
   const { values } = parseArgs({ args: rest.filter((arg) => arg !== '--'), options: {
     registry: { type: 'string' }, name: { type: 'string' }, description: { type: 'string' }, output: { type: 'string' },
+    bindings: { type: 'string' }, 'include-data': { type: 'boolean', default: false },
     'no-watch': { type: 'boolean', default: false },
   }, strict: true });
   if (!['init', 'check', 'preview', 'pack', 'test'].includes(command)) {
-    console.log('Commands: init --registry my-app --name "My App" --description "Purpose" | check | preview [--no-watch] | pack [--output /absolute/app.fbworkbench] | test');
+    console.log('Commands: init --registry my-app --name "My App" --description "Purpose" | check | preview [--no-watch] | pack [--output /absolute/app.fbworkbench] [--bindings /absolute/bindings.json] [--include-data] | test');
     if (command !== 'help') process.exitCode = 1;
     return;
   }
+  if (command !== 'pack' && (values.bindings !== undefined || values['include-data']))
+    throw new Error('EXPORT_OPTIONS_REQUIRE_PACK');
   await prepareTools();
   if (command === 'init') {
     const manifest = await initializeApplication(values);
@@ -45,8 +48,9 @@ export async function main(args) {
   } else if (command === 'pack') {
     const manifest = await readManifest();
     const destination = values.output ?? join(repository, 'artifacts', `${manifest.registryName ?? 'workbench'}-${manifest.version}.fbworkbench`);
-    const result = await exportApplication(destination);
-    console.log(`Application package: ${destination}\n${result.files.length} source files; no preview data included.\nImport in Floatboat: My → Workbenches → Import workbench.\nFloatboat installs dependencies and initializes a new workspace. No Floatboat Agent is required to create this package.`);
+    const bindings = values.bindings ? JSON.parse(await readFile(resolve(values.bindings), 'utf8')) : undefined;
+    const result = await exportApplication(destination, application, { bindings, includeData: values['include-data'] });
+    console.log(`Application package: ${destination}\n${result.files.length} files; ${values['include-data'] ? 'business data included' : 'business data excluded'}.\nImport in Floatboat: My → Workbenches → Import workbench.\nFloatboat installs dependencies and initializes a new workspace. No Floatboat Agent is required to create this package.`);
   } else {
     let preview;
     if (values['no-watch']) { await checkApplication(); preview = await startPreview(); }
