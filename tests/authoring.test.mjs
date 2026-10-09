@@ -13,6 +13,34 @@ import { exportApplication } from '../tooling/package.mjs';
 
 before(prepareTools);
 
+test('跨空间 SDK 类型通过真实编译，workspaces 声明随源包交付', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  manifest.capabilities = ['workspaces', 'workflows'];
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  await writeFile(join(root, 'src/server/workspaces.ts'), `
+import type { HostClient, WorkspaceSummary, WorkflowRun } from '../../sdk/host.mjs';
+export async function startInAccount(host: HostClient, key: string): Promise<WorkflowRun> {
+  const result = await host.workspaces.create({ name: 'Account B', browserIdentity: 'isolated', idempotencyKey: key });
+  const workspace: WorkspaceSummary = result.workspace;
+  await host.workspaces.openUrl({ workspaceId: workspace.id, url: 'https://example.com/login', idempotencyKey: key + ':login' });
+  const started = await host.workflows.start({ dependency: 'verify', workspaceId: workspace.id, idempotencyKey: key + ':run' });
+  const page = await host.workflows.list({ workspaceId: workspace.id, status: 'succeeded', cursor: 'cursor', limit: 10 });
+  const cursor: string | null = page.nextCursor;
+  void cursor;
+  return host.workflows.get({ runId: started.runId });
+}
+`);
+  const destination = join(directory, 'workspaces.fbworkbench');
+  await exportApplication(destination, root);
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const unpacked = join(directory, 'unpacked');
+  await unpackWorkbench(destination, unpacked);
+  const imported = JSON.parse(await readFile(join(unpacked, 'application/manifest.json'), 'utf8'));
+  assert.deepEqual(imported.capabilities, ['workspaces', 'workflows']);
+  assert.match(await readFile(join(unpacked, 'application/src/server/workspaces.ts'), 'utf8'), /workspaceId: workspace.id/);
+  await assert.rejects(access(join(unpacked, 'application/sdk')));
+});
+
 test('Connector 声明可随包交付，个人 connectionId 被 manifest 校验拒绝', async (t) => {
   const { directory, root, manifest } = await fixture(t);
   manifest.capabilities = ['connected-services'];

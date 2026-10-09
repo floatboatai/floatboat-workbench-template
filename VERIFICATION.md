@@ -76,3 +76,21 @@ No additional live Codex/Claude session, Windows session or authorized platform 
 Added portable `connectedServices` declarations and synchronized the Host SDK for requesting/observing authorization, reading account bindings and calling a logical service. The authoring guide distinguishes pre-authorization catalog discovery from runtime execution and Host-local account bindings.
 
 The existing 12 tooling tests and 1 application test passed. A new targeted export test verified that service declarations survive `.fbworkbench` packaging while personal connectionId fields are rejected by the manifest. Final application/SDK check and skills:check passed. Desktop separately passed 114 focused tests, a packaged Electron cancellation flow, and browser fixture checks at desktop and narrow widths. No real Gmail OAuth or Gmail business operation was performed. These changes are local and have not been pushed.
+
+
+## 2026-10-09 cross-workspace SDK alignment
+
+Synchronized the Host SDK with Desktop commit `d518f80eb2bc188b68a5d6b2894cd88f65e1c9cd` (Floatboat `0.5.10-rc.1`). Added the portable `workspaces` manifest capability, public Workflow target/source/pagination types, and the sixteenth authoring topic. The starter app, dependencies, SDK/profile versions and existing migrations are unchanged.
+
+Validation on macOS arm64, Node 22.22.2 and pnpm 10.22.0:
+
+- Frozen dependency installation and the unchanged template build baseline passed.
+- New contract tests first reproduced missing workspace methods and rejected manifest declarations (3 failures, 1 passing Workflow transport case), then all 4 passed after synchronization.
+- `pnpm test:tooling`: 31 passed. This includes real loopback HTTP for the generated SDK, default/explicit Workflow targets, filters/cursors, source projections, SSE results, unknown navigation errors, offline calls, and manifest rejection of duplicate/unknown domains.
+- A typed cross-workspace server consumer compiled through the real application checker and survived `.fbworkbench` export/unpack with its capability declarations; generated SDK files stayed outside the source archive.
+- `pnpm test`: 1 application test passed, including application/SDK typechecking and server/UI build.
+- `pnpm workbench:pack`: generated an 18-source-file starter package, with business data excluded.
+- `pnpm skills:check`: 16 topics, valid links and matching generated Claude entry. `git diff --check` passed.
+- Both synchronized SDK files match the committed Desktop blobs byte for byte; provenance records their hashes and the adapted manifest contract.
+
+These template checks do not claim a live Desktop connection, native window navigation, browser login isolation, Windows/Linux execution or full Electron import acceptance. The guide explicitly documents the live Host view required for activate/openUrl. Existing Desktop acceptance remains separate from this standalone template validation.

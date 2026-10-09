@@ -20,7 +20,7 @@ pnpm dev
 
 > 阅读 AGENTS.md，为我创建一个用于［用户与业务目标］的工作台。先补充 app/REQUIREMENTS.md，在 app/ 中实现业务流程，同时维护 manifest。完成检查、测试和真实浏览器预览验证。
 
-仓库内置 `floatboat-workbench` Skill，覆盖现有工作台创建指导的 15 个主题。在此仓库中新开会话后，可以这样使用：
+仓库内置 `floatboat-workbench` Skill，覆盖现有工作台创建指导的 16 个主题。在此仓库中新开会话后，可以这样使用：
 
 - Codex：`$floatboat-workbench 为我创建一个项目管理工作台`。
 - Claude Code：`/floatboat-workbench 为我创建一个项目管理工作台`。
@@ -67,3 +67,5 @@ pnpm run package -- --output /absolute/path/project-tracker.fbworkbench
 ## 外部开发时调用 Host 能力
 
 启动支持本连接协议的 Floatboat 并登录后，外部 `pnpm dev` 会自动连接标准工作台 SDK，直接调用 Agent、大模型等能力，无需先导入。客户端后启动或重启也会自动重连；账号权限和 manifest 声明仍然生效。离线调用返回 `HOST_NOT_CONNECTED`。多客户端选择与连接详情见 [平台连接](docs/platform.md)。
+
+模板 SDK 已同步 Floatboat `0.5.10-rc.1` 的工作空间创建与跨空间 Workflow 能力。实现“添加网站账户”时，先读 [workspaces 指引](.agents/skills/floatboat-workbench/references/workspaces.md)：它说明独立登录态、账号与空间关联、幂等恢复、登录检测，以及导航所需的 Floatboat 窗口条件。按实际使用声明 `workspaces`／`workflows`，并查询运行中客户端的能力，连接成功本身不代表登录页已展示。

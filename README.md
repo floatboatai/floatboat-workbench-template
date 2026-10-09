@@ -20,11 +20,13 @@ Open the complete loopback URL printed by the last command. `pnpm dev` watches s
 
 With a compatible Floatboat client running and signed in, `pnpm dev` automatically connects standard Host SDK capabilities, including Agent and LLM. No import is required. See [platform connection](docs/platform.md) for permissions, reconnect and multiple-client selection.
 
+The SDK also supports independent website account workspaces and explicit cross-workspace Workflow dispatch, as included in Floatboat `0.5.10-rc.1`. Read the [workspaces guide](.agents/skills/floatboat-workbench/references/workspaces.md) before adding an account flow; it covers persistence, isolated browser identity, login verification and the Host window required for navigation. Declare the capabilities used by your app and discover support on the running client.
+
 Use this prompt from the repository root:
 
 > Read AGENTS.md. Build a workbench for [users and business goal]. Record requirements, implement the business flow in app/, keep the manifest accurate, run checks and tests, and validate the real local preview.
 
-The repository includes the `floatboat-workbench` Skill, with 15 topics matching the existing Floatboat creation guide. From a new session in this checkout:
+The repository includes the `floatboat-workbench` Skill, with 16 topics matching the existing Floatboat creation guide. From a new session in this checkout:
 
 - Codex: `$floatboat-workbench Build a workbench for [users and business goal]`.
 - Claude Code: `/floatboat-workbench Build a workbench for [users and business goal]`.

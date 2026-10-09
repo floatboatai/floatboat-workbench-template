@@ -1,6 +1,6 @@
 ---
 name: floatboat-workbench
-description: Create, modify, preview, validate or export a Floatboat workbench in this template repository. Use for business UI, server routes, SQLite, manifest metadata, Workflow/Combo dependencies, file resources and Host SDK integration.
+description: Create, modify, preview, validate or export a Floatboat workbench in this template repository. Use for business UI, server routes, SQLite, manifest metadata, Workflow/Combo dependencies, website account workspaces, file resources and Host SDK integration.
 ---
 
 # Floatboat workbench authoring
@@ -40,6 +40,7 @@ These topics are also available without installing dependencies through `node to
 | Agent tasks with tools and an explicit execution directory | [agent](references/agent.md) |
 | Streaming speech recognition | [asr](references/asr.md) |
 | Starting or observing a declared Workflow | [workflows](references/workflows.md) |
+| Creating isolated website accounts, opening login pages or dispatching to another workspace | [workspaces](references/workspaces.md) |
 | Connected third-party services and account selection | [connected-services](references/connected-services.md) |
 | Ordinary calendar events | [calendar](references/calendar.md) |
 | Scheduled Agent tasks | [automation](references/automation.md) |

@@ -60,6 +60,8 @@ export type WorkflowRunStatus =
   | 'cancelled';
 
 export interface WorkflowRun {
+  workspaceId: string;
+  source: { kind: string; workspaceId: string | null; appId: string | null } | null;
   id: string;
   workflowId: string;
   status: WorkflowRunStatus;
@@ -72,6 +74,7 @@ export interface WorkflowRun {
 }
 
 export interface WorkflowStart {
+  workspaceId?: string;
   name?: string;
   dependency?: string;
   input?: Record<string, Json>;
@@ -131,7 +134,27 @@ export interface AutomationDraft {
   rrule?: string | null;
 }
 
+export interface WorkspaceSummary {
+  id: string;
+  name: string | null;
+  status: string;
+}
 export interface HostClient {
+  workspaces: {
+    list(input?: {
+      limit?: number;
+      cursor?: string;
+    }): Promise<{ workspaces: WorkspaceSummary[]; nextCursor: string | null }>;
+    create(
+      input: { name: string; absolutePath?: string; browserIdentity?: 'isolated' | 'default'; idempotencyKey: string },
+      options?: CallOptions,
+    ): Promise<{ workspace: WorkspaceSummary; created: boolean }>;
+    activate(input: { workspaceId: string }, options?: CallOptions): Promise<{ workspaceId: string; displayed: true }>;
+    openUrl(
+      input: { workspaceId: string; url: string; idempotencyKey: string },
+      options?: CallOptions,
+    ): Promise<{ workspaceId: string; tabId: string; displayed: true }>;
+  };
   agent: {
     conversations: {
       create(input: AgentConversationCreate): Promise<AgentConversation>;
@@ -190,7 +213,13 @@ export interface HostClient {
   workflows: {
     start(input: WorkflowStart, options?: CallOptions): Promise<{ runId: string; idempotencyKey: string }>;
     get(input: { runId: string }): Promise<WorkflowRun>;
-    list(input?: { limit?: number }): Promise<{ runs: WorkflowRun[] }>;
+    list(input?: {
+      workspaceId?: string;
+      workflowId?: string;
+      status?: WorkflowRunStatus;
+      cursor?: string;
+      limit?: number;
+    }): Promise<{ runs: WorkflowRun[]; nextCursor: string | null }>;
     cancel(input: { runId: string }): Promise<{ accepted: boolean; run: WorkflowRun }>;
     findByIdempotencyKey(input: {
       idempotencyKey: string;

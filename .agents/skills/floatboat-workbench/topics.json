@@ -8,6 +8,7 @@
   "agent": "references/agent.md",
   "asr": "references/asr.md",
   "workflows": "references/workflows.md",
+  "workspaces": "references/workspaces.md",
   "resources": "references/resources.md",
   "connected-services": "references/connected-services.md",
   "calendar": "references/calendar.md",
