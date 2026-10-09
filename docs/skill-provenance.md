@@ -29,3 +29,9 @@ The runtime and verification topics now describe this repository's checked live 
 ## Local transport and Agent progress (2026-09-21)
 
 Aligned with Desktop commit `9555ab8809a3064cc5936a51fd9c37a8725a6846`: ordinary local URLs replace page-token handshakes; automatic checked updates need no user toggle. The Agent guide covers idle timeouts, cursor recovery, partial snapshots and Host-owned tool history. Earlier snapshot descriptions above are historical.
+
+## Cross-workspace operations (2026-10-09)
+
+Aligned with Desktop commit `d518f80eb2bc188b68a5d6b2894cd88f65e1c9cd`, released as Floatboat `0.5.10-rc.1`. The SDK runtime and public types match `src/main/workbench/sdk/host.mts` and `host-contracts.mts` exactly. The portable manifest adds the `workspaces` capability from `src/common/workbench/workbenchManifest.ts`; its Desktop-only extraction remains intact. Per-file hashes are recorded in `provenance.json.crossWorkspaceRevision`.
+
+The catalog now has 16 topics, including `workspaces`, matching `getWorkbenchAuthoringGuideInputSchema`. The workspace guide adapts `resources/workbench-authoring/references/workspaces.md`, while Workflow semantics follow `WorkbenchAuthoringService.GUIDES.workflows`. The standalone guidance additionally explains that connection discovery does not create the Renderer window lease required by `WorkbenchWorkspaceNavigation`; UI navigation must be verified in a displayed managed workbench. Template SDK/profile versions and the starter application's identity, capabilities and data remain unchanged.

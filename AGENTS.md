@@ -1,6 +1,6 @@
 # Workbench authoring
 
-For creating, changing, previewing, validating or exporting a workbench, read and use [.agents/skills/floatboat-workbench/SKILL.md](.agents/skills/floatboat-workbench/SKILL.md). It routes to the same 15 topics as Floatboat's authoring guide, adapted for this standalone checkout. Read only the topics needed for the task; `pnpm workbench:guide -- --list` lists them without building or connecting to Floatboat.
+For creating, changing, previewing, validating or exporting a workbench, read and use [.agents/skills/floatboat-workbench/SKILL.md](.agents/skills/floatboat-workbench/SKILL.md). It routes to the same 16 topics as Floatboat's authoring guide, adapted for this standalone checkout. Read only the topics needed for the task; `pnpm workbench:guide -- --list` lists them without building or connecting to Floatboat.
 
 Build the user's business app in `app/`. Read `app/REQUIREMENTS.md` and preserve existing user changes, identity, migrations and data. Run repository commands from the root. Maintain `app/ENGINEERING.md`, `app/DESIGN.md` and `app/manifest.json` with the implementation.
 

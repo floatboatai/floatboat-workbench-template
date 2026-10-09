@@ -194,7 +194,7 @@
       "sourceSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca",
       "adapted": false,
       "extractedSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca",
-      "candidateSha256": "39dee0c8d2e1a1fb7388a7e99503624e5a53d4b3fefdc61fab10df74e7db65ca"
+      "candidateSha256": "2c70e3c7c7592f3374d3a586cf78d9bd0998bf742218f9e79d82e11efa2831ec"
     },
     {
       "source": "src/main/workbench/sdk/host.mts",
@@ -202,7 +202,7 @@
       "sourceSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
       "adapted": false,
       "extractedSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
-      "candidateSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65"
+      "candidateSha256": "39f186e6ae066aba9ed5e4d578753adc1e8be38f1562631e233f6547a3671911"
     },
     {
       "source": "src/main/workbench/sdk/maintenance.mts",
@@ -274,7 +274,7 @@
       "sourceSha256": "9440dc476ef36a6103b38cbde88247a6f3eba5758160492ee56332dc63bde8a8",
       "adapted": true,
       "extractedSha256": "872013e720596930bb3f3ab8acca3f27b004fac44b499789f2033fa2104eecca",
-      "candidateSha256": "47f004f4761d71911387c21ffb7f38b651e086694e32f341c4c299cf3740dd39"
+      "candidateSha256": "7662516619875908d99feebaa86e9bcfd3a5cb61e8f3f6083c81d89689006eb6"
     },
     {
       "source": "src/common/workbench/workbenchCompilation.ts",
@@ -370,14 +370,42 @@
     "change": "Remove page, preview and Host SDK bearer credentials; retain loopback and account/process context."
   },
   "sdkSync": {
-    "date": "2026-09-21",
-    "sourceCommit": "9555ab8809a3064cc5936a51fd9c37a8725a6846",
-    "scope": "src/main/workbench/sdk/*.mts; local transport v2 and recoverable Agent events"
+    "date": "2026-10-09",
+    "sourceCommit": "d518f80eb2bc188b68a5d6b2894cd88f65e1c9cd",
+    "scope": "All src/main/workbench/sdk/*.mts compared with this source commit; synchronized workspaces methods and cross-workspace Workflow types without changing SDK/profile versions."
   },
   "agentConversationRevision": {
     "date": "2026-09-21",
     "sourceChange": "add-workbench-agent-conversations",
     "sourceStatus": "Committed Desktop implementation; hashes identify exact SDK sources.",
     "sourceCommit": "7024c16e22f249a11e26a3dd3fdd55479564590b"
+  },
+  "crossWorkspaceRevision": {
+    "date": "2026-10-09",
+    "sourceCommit": "d518f80eb2bc188b68a5d6b2894cd88f65e1c9cd",
+    "desktopRelease": "0.5.10-rc.1",
+    "files": [
+      {
+        "source": "src/main/workbench/sdk/host.mts",
+        "destination": "sdk/host.mts",
+        "adapted": false,
+        "sourceSha256": "39f186e6ae066aba9ed5e4d578753adc1e8be38f1562631e233f6547a3671911",
+        "candidateSha256": "39f186e6ae066aba9ed5e4d578753adc1e8be38f1562631e233f6547a3671911"
+      },
+      {
+        "source": "src/main/workbench/sdk/host-contracts.mts",
+        "destination": "sdk/host-contracts.mts",
+        "adapted": false,
+        "sourceSha256": "2c70e3c7c7592f3374d3a586cf78d9bd0998bf742218f9e79d82e11efa2831ec",
+        "candidateSha256": "2c70e3c7c7592f3374d3a586cf78d9bd0998bf742218f9e79d82e11efa2831ec"
+      },
+      {
+        "source": "src/common/workbench/workbenchManifest.ts",
+        "destination": "tooling/contracts/workbenchManifest.ts",
+        "adapted": true,
+        "sourceSha256": "db931ac1d52c593fde126e50bd26681de9ebc28bc3d1d3b25556b5fb118f7b5a",
+        "candidateSha256": "7662516619875908d99feebaa86e9bcfd3a5cb61e8f3f6083c81d89689006eb6"
+      }
+    ]
   }
 }

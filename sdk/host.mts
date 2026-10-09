@@ -223,6 +223,12 @@ export function createHostClient(
   }
 
   return {
+    workspaces: {
+      list: (input = {}) => request('workspaces', 'list', input),
+      create: (input, options) => request('workspaces', 'create', input, options),
+      activate: (input, options) => request('workspaces', 'activate', input, options),
+      openUrl: (input, options) => request('workspaces', 'openUrl', input, options),
+    },
     agent: {
       conversations: {
         create: (input) => request('agent', 'conversationCreate', input),

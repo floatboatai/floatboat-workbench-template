@@ -76,8 +76,8 @@ export const workbenchManifestSchema = z
     ui: relativePath,
     migrations: relativePath,
     capabilities: z
-      .array(z.enum(['llm', 'agent', 'asr', 'workflows', 'connected-services', 'calendar', 'automation']))
-      .max(7)
+      .array(z.enum(['llm', 'agent', 'asr', 'workflows', 'connected-services', 'calendar', 'automation', 'workspaces']))
+      .max(8)
       .refine((values) => new Set(values).size === values.length, '能力声明不能重复')
       .default([]),
     dependencies: z.array(workbenchDependencySchema).max(64).optional(),

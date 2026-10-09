@@ -10,7 +10,7 @@ The validator is `tooling/contracts/workbenchManifest.ts`. `pnpm workbench:check
 | `version` | Application version. Store releases require stable `MAJOR.MINOR.PATCH`; already submitted releases are immutable, so publish changes under a newer version. |
 | `changelog` | Optional release notes. Describe real changes; for the first release describe the implemented capabilities. |
 | `runtime`, `sdkVersion`, `build` | Compatibility contracts selected by the toolchain. Do not guess a newer profile or edit these to bypass a failure. |
-| `capabilities` | Declare only used platform domains: llm, agent, asr, workflows, connected-services, calendar, automation. Local-only apps may use an empty array. Declaring one does not connect or authorize it. |
+| `capabilities` | Declare only used platform domains: llm, agent, asr, workflows, connected-services, calendar, automation, workspaces. Local-only apps may use an empty array. Declaring one does not connect or authorize it. |
 | `minDesktopVersion` | Optional verified minimum Desktop version. Leave absent when unknown. |
 | `contributions` | Optional Host entry points. Add only implemented page/action targets. |
 | `license` | Optional application license, selected by its owner. The local candidate leaves it absent while its own license is undecided. Store submission may impose separate license requirements. |
@@ -18,6 +18,8 @@ The validator is `tooling/contracts/workbenchManifest.ts`. `pnpm workbench:check
 Core defaults include `schemaVersion: 1`, `runtime: node22-sqlite-v1`, `sdkVersion: 1.0.0`, build profile `typescript-react-v1`, server `dist/server/index.mjs`, UI `dist/ui`, migrations `migrations`. Metadata beyond the required build contract is encouraged without inventing unsupported capabilities, compatibility or a license.
 
 Workflow/Combo dependencies and file resources use `dependencies` and `resources`; see [resources](resources.md). Absolute local bindings do not belong in manifest.
+
+For website account onboarding, declare `workspaces` and `workflows` as used; persist account-to-workspace associations and operation keys in the business database. Read the [workspaces guide](../.agents/skills/floatboat-workbench/references/workspaces.md) for isolated login state and navigation confirmation. The starter keeps an empty capability list until a business app needs these operations.
 
 ## Connector services
 
