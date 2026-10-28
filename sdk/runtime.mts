@@ -16,6 +16,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { HostConnection } from './host.mjs';
 import type { RouteContext, WorkbenchManifest, WorkbenchServer } from './runtime-contracts.mjs';
 import { errorFields } from './errors.mjs';
+import { readWorkbenchBrowserPolicy, workbenchBrowserHeaders, WORKBENCH_MIME_TYPES } from './browser-policy.mjs';
+import { createWorkbenchBrowserDiagnostics } from './runtime-diagnostics.mjs';
 export type * from './runtime-contracts.mjs';
 
 interface StartConfiguration {
@@ -53,6 +55,8 @@ export async function createWorkbenchServer(
   const manifest = JSON.parse(
     await readFile(join(config.sourceDirectory, 'manifest.json'), 'utf8'),
   ) as WorkbenchManifest;
+  const browserPolicy = readWorkbenchBrowserPolicy(manifest.browser);
+  const browserHeaders = workbenchBrowserHeaders(browserPolicy);
   if (manifest.appId !== config.appId) throw new Error('WORKBENCH_IDENTITY_MISMATCH');
   const expectedEntry = resolve(config.sourceDirectory, manifest.server);
   if ((await realpath(fileURLToPath(entryUrl))) !== (await realpath(expectedEntry)))
@@ -78,6 +82,10 @@ export async function createWorkbenchServer(
   const notify = (message: Record<string, unknown>) => {
     if (process.connected) process.send?.({ ...message, generation: config.generation, nonce: config.nonce });
   };
+  const browserDiagnostics = createWorkbenchBrowserDiagnostics((diagnostic) => {
+    notify({ type: 'browser-diagnostic', diagnostic });
+    process.stdout.write(`${JSON.stringify({ type: 'browser-diagnostic', diagnostic })}\n`);
+  });
   const updateTask = database.prepare('UPDATE _workbench_tasks SET state=?, updated_at=?, error_code=? WHERE id=?');
   async function trackTask<T>(operation: () => Promise<T>, kind = 'business'): Promise<T> {
     if (closing) throw new Error('WORKBENCH_STOPPING');
@@ -123,6 +131,35 @@ export async function createWorkbenchServer(
     if (!url || request.headers.host !== new URL(url).host)
       return send(response, { error: { code: 'APP_HOST_INVALID' } }, 403);
     const requestUrl = new URL(request.url ?? '/', url);
+    if (['/__workbench/diagnostics', '/__workbench/csp-report'].includes(requestUrl.pathname)) {
+      if (
+        (request.headers.origin && request.headers.origin !== url) ||
+        request.headers['sec-fetch-site'] === 'cross-site'
+      )
+        return send(response, {}, 403);
+      if (request.method === 'GET' && requestUrl.pathname === '/__workbench/diagnostics')
+        return send(response, {
+          isolationRequested: browserPolicy.crossOriginIsolated,
+          entries: browserDiagnostics.list(),
+        });
+      if (request.method !== 'POST') return send(response, {}, 405);
+      if (requestUrl.pathname === '/__workbench/diagnostics' && request.headers.origin !== url)
+        return send(response, {}, 403);
+      try {
+        const body = await readBody(request, 8192);
+        const report = body['csp-report'];
+        const csp = report && typeof report === 'object' ? (report as Record<string, unknown>) : null;
+        const accepted =
+          requestUrl.pathname === '/__workbench/csp-report'
+            ? csp &&
+              browserDiagnostics.report('WORKBENCH_CSP_BLOCKED', csp['blocked-uri'], url, csp['effective-directive'])
+            : browserDiagnostics.report(body.code, body.resource, url, body.directive);
+        response.writeHead(accepted ? 204 : 400);
+        return response.end();
+      } catch {
+        return send(response, {}, 400);
+      }
+    }
     if (requestUrl.pathname === '/__workbench/health') {
       if (!equalToken(request.headers.authorization?.replace(/^Bearer /, ''), config.nonce))
         return send(response, {}, 401);
@@ -162,26 +199,40 @@ export async function createWorkbenchServer(
     }
     if (request.method !== 'GET') return send(response, {}, 405);
     const uiRoot = resolve(config.sourceDirectory, manifest.ui);
-    const target =
+    const sdkAsset =
       requestUrl.pathname === '/__workbench/browser.mjs'
-        ? join(dirname(fileURLToPath(import.meta.url)), 'browser.mjs')
+        ? 'browser.mjs'
+        : requestUrl.pathname === '/__workbench/diagnostics.mjs'
+          ? 'browser-diagnostics.mjs'
+          : null;
+    let target: string;
+    try {
+      target = sdkAsset
+        ? join(dirname(fileURLToPath(import.meta.url)), sdkAsset)
         : resolve(uiRoot, `.${decodeURIComponent(requestUrl.pathname === '/' ? '/index.html' : requestUrl.pathname)}`);
-    if (requestUrl.pathname !== '/__workbench/browser.mjs' && !inside(uiRoot, target)) return send(response, {}, 403);
+    } catch {
+      return send(response, {}, 400);
+    }
+    if (!sdkAsset && !inside(uiRoot, target)) return send(response, {}, 403);
     try {
       const actual = await realpath(target);
-      if (requestUrl.pathname !== '/__workbench/browser.mjs' && !inside(await realpath(uiRoot), actual))
-        return send(response, {}, 403);
-      const content = await readFile(actual);
-      response.writeHead(200, {
-        'content-type': MIME_TYPES[extname(target)] ?? 'application/octet-stream',
-        'x-content-type-options': 'nosniff',
-        'cache-control': 'no-store',
-        'content-security-policy':
-          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'",
-      });
+      if (!sdkAsset && !inside(await realpath(uiRoot), actual)) return send(response, {}, 403);
+      let content: Buffer | string = await readFile(actual);
+      const mime = WORKBENCH_MIME_TYPES[extname(target).toLowerCase()];
+      if (!mime) browserDiagnostics.report('WORKBENCH_RESOURCE_MIME_INVALID', requestUrl.href, url);
+      if (mime?.startsWith('text/html')) {
+        const script = '<script type="module" src="/__workbench/diagnostics.mjs"></script>';
+        const html = content.toString('utf8');
+        content = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `${script}</head>`) : `${html}\n${script}`;
+      }
+      response.writeHead(200, { ...browserHeaders, 'content-type': mime ?? 'application/octet-stream' });
       response.end(content);
     } catch (error) {
-      if (['ENOENT', 'EISDIR'].includes(errorFields(error).code ?? '')) return send(response, {}, 404);
+      if (['ENOENT', 'EISDIR'].includes(errorFields(error).code ?? '')) {
+        if (requestUrl.pathname !== '/favicon.ico')
+          browserDiagnostics.report('WORKBENCH_RESOURCE_NOT_FOUND', requestUrl.href, url);
+        return send(response, {}, 404);
+      }
       throw error;
     }
   }
@@ -289,18 +340,6 @@ export async function createWorkbenchServer(
   };
 }
 
-const MIME_TYPES: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.woff2': 'font/woff2',
-};
-
 function equalToken(provided: unknown, expected: unknown) {
   if (typeof provided !== 'string' || typeof expected !== 'string') return false;
   const left = Buffer.from(provided);
@@ -313,12 +352,12 @@ function inside(root: string, candidate: string) {
   return path === '' || (!path.startsWith(`..${sep}`) && path !== '..' && !isAbsolute(path));
 }
 
-async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+async function readBody(request: IncomingMessage, limit = 2_000_000): Promise<Record<string, unknown>> {
   let bytes = 0;
   const chunks: Buffer[] = [];
   for await (const chunk of request) {
     bytes += chunk.length;
-    if (bytes > 2_000_000) throw Object.assign(new Error('APP_REQUEST_TOO_LARGE'), { code: 'APP_REQUEST_TOO_LARGE' });
+    if (bytes > limit) throw Object.assign(new Error('APP_REQUEST_TOO_LARGE'), { code: 'APP_REQUEST_TOO_LARGE' });
     chunks.push(chunk);
   }
   return chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : {};

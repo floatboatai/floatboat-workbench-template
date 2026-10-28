@@ -24,6 +24,19 @@ pnpm workbench:pack
 
 The tooling tests exercise external resource snapshots, opt-in data export with the SDK lock and SQLite backup, initialization safety, invalid manifest/source links, credential-free local HTTP, unavailable Host calls, SQLite persistence, concurrent data locking, shutdown cleanup and archive validation/exclusion. Browser and full Desktop import validation are separate checks; do not infer them from passing Node tests.
 
+## 浏览器 WebAssembly
+
+`sdk/runtime.mts` 与 `tooling/compiler/worker.ts` 支持随应用源码交付的 `.wasm` 文件：
+
+```typescript
+const engineUrl = new URL('./engine.wasm', import.meta.url);
+const { instance } = await WebAssembly.instantiateStreaming(fetch(engineUrl));
+```
+
+将模块放在 `app/src/ui/` 或资源子目录。构建保留同源文件，即使文件很小也不内联为 data URL；SDK 返回 `application/wasm`，并使用 `script-src 'self' 'wasm-unsafe-eval'`。JavaScript eval/Function 和内联脚本保持受限；网络、Blob Worker 与多线程按 manifest.browser 声明，详见创作 engineering 指引。
+
+修改上述真源后运行 `pnpm workbench:check`、`pnpm test`、`pnpm test:tooling`，再重启预览。不要手改生成的 `app/sdk` 或 `.generated`。源码包携带 WASM 源文件，Desktop 导入时补齐自己的 SDK 并重建，因此需要配套更新客户端；已有客户端工程使用 `workbench_runtime refresh-sdk` 后重新 check/open。外层预览壳不执行 WASM，其 CSP 保持原有范围。
+
 Standalone live reload lives in `tooling/live-preview.mjs` and the fixed preview page. Local transport protocol v2 removes page/preview/Bearer credentials while preserving account and process context. It checks immutable source snapshots, waits for tracked work, backs up persistent data after stopping the old service and restores data on startup failure. Test actual saves, build/start failures, subsequent recovery and shutdown. The tooling suite runs files sequentially because preparation shares `.generated/`. `package` and `workbench:pack` route to the same source exporter; this is not npm registry publishing.
 
 ## Authoring guidance

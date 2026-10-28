@@ -1,12 +1,15 @@
 // ABOUTME: 用 HTML 解析器校验真实页面入口，确保页面脚本进入 TypeScript 检查范围。
 
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, relative } from 'node:path';
 import { parse, type DefaultTreeAdapterMap } from 'parse5';
 import type { WorkbenchCompilationDiagnostic } from '../contracts/workbenchCompilation';
 import { diagnostic, inside } from './diagnostics';
 
-export function checkPageEntry(root: string): WorkbenchCompilationDiagnostic[] {
+export function checkPageEntry(
+  root: string,
+  staticAssets: readonly { target: string }[] = [],
+): WorkbenchCompilationDiagnostic[] {
   const html = parse(readFileSync(join(root, 'index.html'), 'utf8'), { sourceCodeLocationInfo: true });
   const issues: WorkbenchCompilationDiagnostic[] = [];
   let scripts = 0;
@@ -36,7 +39,9 @@ export function checkPageEntry(root: string): WorkbenchCompilationDiagnostic[] {
         const value = attributes[key];
         if (!value || node.tagName === 'a' || /^(?:https?:|data:|#)/u.test(value)) continue;
         const path = resolve(root, value.startsWith('/') ? value.slice(1) : value);
-        if (!inside(join(root, 'src'), path))
+        const resource = relative(root, path).replaceAll('\\', '/');
+        const declared = staticAssets.some(({ target }) => resource.startsWith(`${target}/`));
+        if (!inside(join(root, 'src'), path) && !declared)
           issues.push(
             diagnostic(
               'WORKBENCH_PAGE_RESOURCE_OUTSIDE_SOURCE',
