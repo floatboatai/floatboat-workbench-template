@@ -1,6 +1,7 @@
 // ABOUTME: 工作台 manifest、安装记录与本地运行状态的跨进程契约。
 
 import { z } from 'zod';
+import { workbenchBrowserPolicySchema, workbenchStaticAssetSchema } from './workbenchBrowserPolicy';
 import { workbenchServiceDeclarationSchema } from './workbenchConnections';
 import { workbenchDependencySchema, workbenchResourceSchema, validateWorkbenchAssetDeclarations } from './workbenchAssets';
 export const WORKBENCH_REGISTRY_NAME_PATTERN = /^[a-z0-9](?:[a-z0-9_-]{0,126}[a-z0-9])?$/u;
@@ -41,6 +42,7 @@ export const workbenchBuildConfigurationSchema = z
       .refine((value) => /^src\/server\/.+\.(?:ts|mts)$/.test(value), '服务端源码必须为 src/server/ 下的 TypeScript')
       .default('src/server/index.ts'),
     ui: z.literal('index.html').default('index.html'),
+    staticAssets: z.array(workbenchStaticAssetSchema).max(16).optional(),
   })
   .strict();
 const contributionTarget = z.discriminatedUnion('kind', [
@@ -72,6 +74,7 @@ export const workbenchManifestSchema = z
     sdkVersion: z.literal(WORKBENCH_SDK_VERSION),
     runtime: z.literal(WORKBENCH_RUNTIME_PROFILE),
     build: workbenchBuildConfigurationSchema.optional(),
+    browser: workbenchBrowserPolicySchema.optional(),
     server: relativePath,
     ui: relativePath,
     migrations: relativePath,

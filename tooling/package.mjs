@@ -50,6 +50,7 @@ export async function exportApplication(destination, root = application, { bindi
     await copy('src');
     await copy('tests');
     await copy(manifest.migrations);
+    for (const asset of manifest.build?.staticAssets ?? []) await copy(asset.source);
     if (includeData) {
       for (const item of manifest.resources ?? []) if (item.location === 'project') {
         try { await copy(item.path); } catch (error) { if (item.required || error.code !== 'ENOENT') throw error; }

@@ -1,5 +1,6 @@
 // ABOUTME: App 自有 HTTP、SQLite 与在途任务的公开契约。
 
+import type { WorkbenchBrowserPolicy } from './browser-policy.mjs';
 import type { IncomingMessage } from 'node:http';
 import type { WorkbenchResources, WorkbenchResourceDeclaration } from './resources.mjs';
 
@@ -15,6 +16,7 @@ export interface WorkbenchManifest {
   ui: string;
   migrations: string;
   capabilities: string[];
+  browser?: WorkbenchBrowserPolicy;
   resources?: WorkbenchResourceDeclaration[];
 }
 

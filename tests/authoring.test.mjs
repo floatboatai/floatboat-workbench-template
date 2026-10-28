@@ -3,7 +3,7 @@ process.env.FLOATBOAT_HOST_MODE = 'offline';
 // ABOUTME: 验证外部创作到真实运行和归档的链路，不使用 Desktop 或替身数据库。
 import assert from 'node:assert/strict';
 import { test, before } from 'node:test';
-import { cp, mkdir, mkdtemp, readFile, writeFile, rm, access, symlink } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, writeFile, rm, access, symlink } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { application, repository, prepareTools, checkApplication } from '../tooling/build.mjs';
@@ -12,6 +12,56 @@ import { startPreview } from '../tooling/preview.mjs';
 import { exportApplication } from '../tooling/package.mjs';
 
 before(prepareTools);
+
+test('WASM 同源资源可流式执行，源码包保留模块且不携带 SDK', async (t) => {
+  const { directory, root, manifest } = await fixture(t);
+  const wasm = Buffer.from('0061736d010000000105016000017f03020100070a0106616e7377657200000a06010400412a0b', 'hex');
+  await writeFile(join(root, 'src/ui/answer.wasm'), wasm);
+  await writeFile(join(root, 'src/ui/main.tsx'), `
+const url = new URL('./answer.wasm', import.meta.url);
+void WebAssembly.instantiateStreaming(fetch(url)).then(({ instance }) => {
+  document.body.textContent = String((instance.exports.answer as () => number)());
+});
+`);
+  await mkdir(join(root, 'public'));
+  await writeFile(join(root, 'public/dictionary.json'), '{"test":42}');
+  manifest.build.staticAssets = [{ source: 'public', target: 'vendor' }];
+  manifest.browser = { blobWorkers: true, crossOriginIsolated: true, connectOrigins: ['https://api.example.com'] };
+  await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+  await writeFile(join(root, 'src/ui/worker.ts'), 'export {}; self.postMessage(42);');
+  const main = join(root, 'src/ui/main.tsx');
+  await writeFile(main, (await readFile(main, 'utf8')) + "\nnew Worker(new URL('./worker.ts', import.meta.url), {type:'module'});\n");
+  await checkApplication(root);
+  assert.equal(await readFile(join(root, 'dist/ui/vendor/dictionary.json'), 'utf8'), '{"test":42}');
+  assert.ok((await readdir(join(root, 'dist/ui/assets'))).some((name) => name.startsWith('worker-')));
+  const assets = join(root, 'dist/ui/assets');
+  const module = (await readdir(assets)).find((name) => name.endsWith('.wasm'));
+  assert.ok(module, 'WASM 不应被内联为 data URL');
+  assert.deepEqual(await readFile(join(assets, module)), wasm);
+  const preview = await startPreview(root);
+  try {
+    const policy = (await fetch(preview.url)).headers.get('content-security-policy');
+    assert.ok(policy.includes("script-src 'self' 'wasm-unsafe-eval';"));
+    assert.ok(!policy.includes("'unsafe-eval'"));
+    assert.ok(policy.includes("connect-src 'self' https://api.example.com;"));
+    const response = await fetch(`${preview.url}/assets/${module}`);
+    assert.equal(response.headers.get('content-type'), 'application/wasm');
+    const { instance } = await WebAssembly.instantiateStreaming(response);
+    assert.equal(instance.exports.answer(), 42);
+  } finally {
+    await preview.stop();
+  }
+  const destination = join(directory, 'wasm.fbworkbench');
+  await exportApplication(destination, root);
+  const { unpackWorkbench } = await import('../.generated/archive.mjs');
+  const unpacked = join(directory, 'unpacked');
+  await unpackWorkbench(destination, unpacked);
+  assert.deepEqual(await readFile(join(unpacked, 'application/src/ui/answer.wasm')), wasm);
+  await assert.rejects(access(join(unpacked, 'application/sdk')));
+  const unpackedManifest = JSON.parse(await readFile(join(unpacked, 'application/manifest.json'), 'utf8'));
+  assert.deepEqual(unpackedManifest.browser, manifest.browser);
+  assert.equal(await readFile(join(unpacked, 'application/public/dictionary.json'), 'utf8'), '{"test":42}');
+});
 
 test('跨空间 SDK 类型通过真实编译，workspaces 声明随源包交付', async (t) => {
   const { directory, root, manifest } = await fixture(t);

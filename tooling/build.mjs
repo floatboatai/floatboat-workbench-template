@@ -66,7 +66,7 @@ async function checkSourceTree(root, path = '') {
     const relative = path ? `${path}/${item.name}` : item.name;
     const stat = await lstat(join(root, relative));
     if (stat.isSymbolicLink()) throw new Error(`SOURCE_SYMLINK_UNSUPPORTED:${relative}`);
-    if (!path && ['node_modules', 'dist', 'sdk', '.workbench-vite'].includes(item.name)) continue;
+    if (!path && (['node_modules', 'dist', 'sdk', '.workbench-vite'].includes(item.name) || item.name.startsWith('.workbench-public-'))) continue;
     if (stat.isDirectory()) await checkSourceTree(root, relative);
     else if (!stat.isFile()) throw new Error(`SOURCE_FILE_TYPE_INVALID:${relative}`);
   }

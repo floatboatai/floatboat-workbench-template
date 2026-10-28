@@ -10,6 +10,8 @@ The validator is `tooling/contracts/workbenchManifest.ts`. `pnpm workbench:check
 | `version` | Application version. Store releases require stable `MAJOR.MINOR.PATCH`; already submitted releases are immutable, so publish changes under a newer version. |
 | `changelog` | Optional release notes. Describe real changes; for the first release describe the implemented capabilities. |
 | `runtime`, `sdkVersion`, `build` | Compatibility contracts selected by the toolchain. Do not guess a newer profile or edit these to bypass a failure. |
+| `build.staticAssets` | 工程内公开目录的 source → target URL 前缀映射；随源包交付和重建，拒绝私有文件、链接与保留路径覆盖。 |
+| `browser` | `connectOrigins` 精确网络来源、`blobWorkers` 与 `crossOriginIsolated` 按应用声明；配置和验证见 [engineering](../.agents/skills/floatboat-workbench/references/engineering.md#浏览器资源与执行策略)。 |
 | `capabilities` | Declare only used platform domains: llm, agent, asr, workflows, connected-services, calendar, automation, workspaces. Local-only apps may use an empty array. Declaring one does not connect or authorize it. |
 | `minDesktopVersion` | Optional verified minimum Desktop version. Leave absent when unknown. |
 | `contributions` | Optional Host entry points. Add only implemented page/action targets. |

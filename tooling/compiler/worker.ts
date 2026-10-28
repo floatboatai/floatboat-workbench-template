@@ -1,7 +1,6 @@
 // ABOUTME: 工作台受管构建入口，不加载 App 构建配置、插件或业务代码。
 
-import { readFile, writeFile } from 'node:fs/promises';
-import { builtinModules } from 'node:module';
+import { readFile, writeFile, rm } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build as buildServer } from 'esbuild';
@@ -10,6 +9,8 @@ import type { WorkbenchCompilationInput, WorkbenchCompilationResult } from '../c
 import { checkTypes } from './typecheck';
 import { diagnostic, inside } from './diagnostics';
 import { checkPageEntry } from './page-entry';
+import { prepareWorkbenchStaticAssets } from './static-assets';
+import { workbenchBrowserBoundary } from './browser-boundary';
 
 const toolchain = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const input = JSON.parse(await readFile(process.argv[2], 'utf8')) as WorkbenchCompilationInput;
@@ -22,12 +23,17 @@ let result: WorkbenchCompilationResult = {
   compilation: 'not-run',
   diagnostics: [],
 };
+let staticDirectory: string | false = false;
 try {
-  const issues = [...checkPageEntry(root), ...checkTypes(root, toolchain, input.manifest)].slice(0, 100);
+  const issues = [
+    ...checkPageEntry(root, input.manifest.build.staticAssets),
+    ...checkTypes(root, toolchain, input.manifest),
+  ].slice(0, 100);
   result = { ...result, diagnostics: issues };
   if (!issues.some((issue) => issue.severity === 'error')) {
     result.typecheck = 'passed';
     result.compilation = 'failed';
+    staticDirectory = await prepareWorkbenchStaticAssets(root, input.manifest.build.staticAssets);
     await buildServer({
       absWorkingDir: root,
       entryPoints: [input.manifest.build.server],
@@ -56,12 +62,11 @@ try {
         },
       ],
     });
-    const nodeNames = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
     await buildPage({
       root,
       configFile: false,
       envFile: false,
-      publicDir: false,
+      publicDir: staticDirectory,
       logLevel: 'silent',
       cacheDir: join(root, '.workbench-vite'),
       css: { postcss: { plugins: [] } },
@@ -73,41 +78,12 @@ try {
         emptyOutDir: true,
         sourcemap: true,
         minify: 'esbuild',
+        // WASM 必须经同源 URL 加载；内联 data URL 会被 connect-src 拦截。
+        assetsInlineLimit: (filePath) => (filePath.endsWith('.wasm') ? false : undefined),
         rollupOptions: { input: join(root, input.manifest.build.ui) },
       },
-      plugins: [
-        {
-          name: 'workbench-browser-boundary',
-          enforce: 'pre',
-          load(id) {
-            const file = id.split('?')[0];
-            if (
-              isAbsolute(file) &&
-              ((!inside(root, file) && !inside(toolchain, file)) || /\.(?:scss|sass|less|styl)$/u.test(file))
-            )
-              throw new Error('WORKBENCH_PAGE_RESOURCE_UNSUPPORTED');
-            return null;
-          },
-          resolveId(source, importer) {
-            if (nodeNames.has(source) || source.startsWith('node:'))
-              throw new Error(`WORKBENCH_BROWSER_SERVER_IMPORT:${source}`);
-            if (importer && source.startsWith('.')) {
-              const target = resolve(dirname(importer), source);
-              // 独立工程的依赖装在仓库根，只允许依赖之间在该目录内解析。
-              const dependencyImport =
-                inside(join(toolchain, 'node_modules'), importer.split('?')[0]) &&
-                inside(join(toolchain, 'node_modules'), target);
-              if (
-                (!inside(root, target) && !dependencyImport) ||
-                inside(join(root, 'src/server'), target) ||
-                /\/sdk\/(?:runtime|host|database)\./.test(target.replaceAll('\\', '/'))
-              )
-                throw new Error(`WORKBENCH_BROWSER_SERVER_IMPORT:${source}`);
-            }
-            return null;
-          },
-        },
-      ],
+      plugins: [workbenchBrowserBoundary(root, toolchain)],
+      worker: { format: 'es', plugins: () => [workbenchBrowserBoundary(root, toolchain)] },
     });
     result.passed = true;
     result.compilation = 'passed';
@@ -137,4 +113,5 @@ try {
     ...result.diagnostics,
   ].slice(0, 100);
 }
+if (staticDirectory) await rm(staticDirectory, { recursive: true, force: true });
 await writeFile(input.reportPath, JSON.stringify(result));

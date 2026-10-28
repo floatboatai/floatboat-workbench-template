@@ -24,6 +24,7 @@ const ignored = (root, path) =>
     .some(
       (part) =>
         generated.has(part) ||
+        part.startsWith('.workbench-public-') ||
         part.startsWith('.env') ||
         part === '.DS_Store' ||
         /\.(?:log|db|sqlite)(?:-wal|-shm)?$/.test(part),

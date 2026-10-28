@@ -35,7 +35,7 @@ export async function createPreviewPage(getStatus) {
       'text/html',
       `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Workbench preview</title>
 <style>html,body{height:100%;margin:0}body{display:flex;flex-direction:column;font:14px system-ui}#status{padding:8px 12px;background:#fff6dd;color:#473800}#status[hidden]{display:none}iframe{border:0;flex:1;width:100%;min-height:0}</style>
-<div id="status" role="status">Connecting…</div><iframe title="Workbench preview" allow="microphone; clipboard-write"></iframe><script type="module" src="/__preview/client.mjs"></script></html>`,
+<div id="status" role="status">Connecting…</div><iframe title="Workbench preview" allow="microphone; clipboard-write; cross-origin-isolated"></iframe><script type="module" src="/__preview/client.mjs"></script></html>`,
     );
   });
   await new Promise((resolve, reject) => {
