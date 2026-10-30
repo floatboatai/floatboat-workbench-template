@@ -14,6 +14,13 @@ import type {
 } from './host-contracts.mjs';
 export type * from './host-contracts.mjs';
 
+/** Model used when an llm call names none; an explicit `model` always wins. */
+export const DEFAULT_LLM_MODEL = 'gemini-3.8-flash';
+const withDefaultModel = <T,>(input: T): T =>
+  input !== null && typeof input === 'object' && !Array.isArray(input) && !(input as { model?: unknown }).model
+    ? { ...input, model: DEFAULT_LLM_MODEL }
+    : input;
+
 interface HostFailure {
   code: string;
   message?: string;
@@ -254,10 +261,10 @@ export function createHostClient(
     },
     capabilities: { list: (input = {}) => request('capabilities', 'list', input) },
     llm: {
-      generateText: (input, options) => request<ModelResult>('llm', 'generateText', input, options),
+      generateText: (input, options) => request<ModelResult>('llm', 'generateText', withDefaultModel(input), options),
       generateObject: (input, options) =>
-        request<ModelResult & { object: unknown }>('llm', 'generateObject', input, options),
-      streamText: (input, options) => events<ModelEvent>('llm', 'streamText', input, options),
+        request<ModelResult & { object: unknown }>('llm', 'generateObject', withDefaultModel(input), options),
+      streamText: (input, options) => events<ModelEvent>('llm', 'streamText', withDefaultModel(input), options),
     },
     workflows: {
       start: (input, options) => request('workflows', 'start', input, options),
