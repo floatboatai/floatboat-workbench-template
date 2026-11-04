@@ -1,0 +1,33 @@
+name: Build workbench template
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm skills:check
+      - run: pnpm workbench:check
+      - run: pnpm test
+      - run: pnpm test:tooling
+      - run: pnpm build
+      - run: pnpm workbench:pack
+      - run: pnpm workbench:pack -- --runtime
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workbench-packages
+          path: artifacts/*.fbworkbench
+          if-no-files-found: error
+          retention-days: 7

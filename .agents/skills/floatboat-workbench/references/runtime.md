@@ -7,6 +7,8 @@ Use Node 22.16+ within 22.x and the pnpm version pinned in package.json. The rep
 | Create | Initialize `app/manifest.json` with `pnpm workbench:init` | `create_workbench_project` returns the owned absolute source directory |
 | Read guidance | `pnpm workbench:guide -- --topic runtime` | `get_workbench_authoring_guide` |
 | Check | `pnpm workbench:check` | `check_workbench_project` |
+| Distribution build | `pnpm build`, optionally `-- --obfuscate` | Managed publishing builds follow Host rules |
+| Runtime-only export | `pnpm workbench:pack -- --runtime` | Import v3 without source compilation |
 | Test | `pnpm test` uses `app/tests/*.test.ts` | Run project tests using the available Host toolchain |
 | Run | `pnpm dev`; source saves trigger checked live reload | `workbench_runtime open` applies the current source |
 | Show UI | Open the complete URL printed by the preview | `workbench.open` shows the registered Workspace panel |
@@ -35,3 +37,5 @@ await app.listen();
 Register routes before `listen`. Route handlers receive `request`, `url`, `params`, `body`, `database` and `host`; validate JSON bodies as unknown. `app.resources` resolves declared files. `app.action` handles declared Host actions. `app.trackTask` tracks local work and `app.tasks()` exposes its recorded state; use the [Agent API](agent.md) when tools and reasoning are needed.
 
 Preview startup owns `FLOATBOAT_WORKBENCH_CONFIG`. Pages and the local Host SDK use ordinary loopback URLs without connection credentials; direct navigation and refresh work without a token. Keep local configuration out of application source and exports. The Node process has the developer's OS permissions; local endpoint access is not a filesystem sandbox. Preview data persists at `.local/data/<appId>/` and shutdown preserves it.
+
+Distribution output, restricted-source behavior and cover demonstration data are defined in [build and delivery](../../../../docs/runtime-packages.md).

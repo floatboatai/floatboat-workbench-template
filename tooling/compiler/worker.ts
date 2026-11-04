@@ -1,7 +1,8 @@
 // ABOUTME: 工作台受管构建入口，不加载 App 构建配置、插件或业务代码。
 
-import { readFile, writeFile, rm } from 'node:fs/promises';
+import { readFile, writeFile, rm, realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { isBuiltin } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { build as buildServer } from 'esbuild';
 import { build as buildPage } from 'vite';
@@ -10,11 +11,15 @@ import { checkTypes } from './typecheck';
 import { diagnostic, inside } from './diagnostics';
 import { checkPageEntry } from './page-entry';
 import { prepareWorkbenchStaticAssets } from './static-assets';
+import { transformWorkbenchPublicationCode, workbenchPublicationPlugin } from './publication-code';
+import { workbenchSourceAccessSchema } from '../contracts/workbenchDistribution';
 import { workbenchBrowserBoundary } from './browser-boundary';
 
 const toolchain = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const dependencyRoot = await realpath(join(toolchain, 'node_modules'));
 const input = JSON.parse(await readFile(process.argv[2], 'utf8')) as WorkbenchCompilationInput;
-const root = input.sourceDirectory;
+const root = await realpath(input.sourceDirectory);
+const publication = input.publication ? workbenchSourceAccessSchema.parse(input.publication.sourceAccess) : undefined;
 if (!isAbsolute(root) || !isAbsolute(input.reportPath) || !input.manifest.build)
   throw new Error('WORKBENCH_COMPILER_INPUT_INVALID');
 let result: WorkbenchCompilationResult = {
@@ -34,22 +39,49 @@ try {
     result.typecheck = 'passed';
     result.compilation = 'failed';
     staticDirectory = await prepareWorkbenchStaticAssets(root, input.manifest.build.staticAssets);
-    await buildServer({
+    const serverResult = await buildServer({
       absWorkingDir: root,
+      nodePaths: [join(toolchain, 'node_modules')],
       entryPoints: [input.manifest.build.server],
       outfile: join(root, input.manifest.server),
       bundle: true,
-      packages: 'external',
+      ...(publication ? {} : { packages: 'external' as const }),
+      ...(publication
+        ? {
+            banner: {
+              js: 'import {createRequire as __workbenchCreateRequire} from "node:module"; const require = __workbenchCreateRequire(import.meta.url);',
+            },
+          }
+        : {}),
+      minify: Boolean(publication),
+      metafile: Boolean(publication),
       platform: 'node',
       format: 'esm',
       target: 'node22',
-      sourcemap: true,
+      sourcemap: !publication,
       logLevel: 'silent',
       tsconfigRaw: { compilerOptions: { target: 'ES2022', useDefineForClassFields: true } },
       plugins: [
         {
           name: 'workbench-sdk',
           setup(build) {
+            if (publication)
+              build.onLoad({ filter: /.*/ }, async (args) => {
+                const canonical = await realpath(args.path);
+                if (!inside(root, canonical) && !inside(dependencyRoot, canonical))
+                  throw new Error('WORKBENCH_RUNTIME_IMPORT_OUTSIDE_PROJECT');
+                if (!inside(join(root, 'src'), canonical) || !/\.[cm]?[jt]sx?$/u.test(canonical)) return;
+                return {
+                  contents: transformWorkbenchPublicationCode(
+                    await readFile(canonical, 'utf8'),
+                    canonical,
+                    toolchain,
+                    publication,
+                  ),
+                  loader: 'js',
+                  resolveDir: dirname(canonical),
+                };
+              });
             build.onResolve({ filter: /sdk\/(?:runtime|host|database)\.mjs$/ }, (args) => {
               const target = resolve(args.resolveDir, args.path);
               if (!inside(join(root, 'sdk'), target)) throw new Error('WORKBENCH_SDK_IMPORT_INVALID');
@@ -62,6 +94,23 @@ try {
         },
       ],
     });
+    if (publication) {
+      await rm(`${join(root, input.manifest.server)}.map`, { force: true });
+      for (const output of Object.values(serverResult.metafile?.outputs ?? {}))
+        for (const dependency of output.imports)
+          if (
+            dependency.external &&
+            !isBuiltin(dependency.path) &&
+            !/^\.\.\/\.\.\/sdk\/(?:runtime|host|database)\.mjs$/u.test(dependency.path)
+          )
+            throw new Error('WORKBENCH_RUNTIME_EXTERNAL_DEPENDENCY_UNSUPPORTED');
+      if (
+        serverResult.warnings.some((warning) =>
+          ['unsupported-dynamic-import', 'unsupported-require-call'].includes(warning.id),
+        )
+      )
+        throw new Error('WORKBENCH_RUNTIME_DYNAMIC_IMPORT_UNSUPPORTED');
+    }
     await buildPage({
       root,
       configFile: false,
@@ -76,14 +125,23 @@ try {
       build: {
         outDir: join(root, input.manifest.ui),
         emptyOutDir: true,
-        sourcemap: true,
+        sourcemap: !publication,
         minify: 'esbuild',
         // WASM 必须经同源 URL 加载；内联 data URL 会被 connect-src 拦截。
         assetsInlineLimit: (filePath) => (filePath.endsWith('.wasm') ? false : undefined),
         rollupOptions: { input: join(root, input.manifest.build.ui) },
       },
-      plugins: [workbenchBrowserBoundary(root, toolchain)],
-      worker: { format: 'es', plugins: () => [workbenchBrowserBoundary(root, toolchain)] },
+      plugins: [
+        workbenchBrowserBoundary(root, toolchain),
+        ...(publication ? [workbenchPublicationPlugin(root, toolchain, publication)] : []),
+      ],
+      worker: {
+        format: 'es',
+        plugins: () => [
+          workbenchBrowserBoundary(root, toolchain),
+          ...(publication ? [workbenchPublicationPlugin(root, toolchain, publication)] : []),
+        ],
+      },
     });
     result.passed = true;
     result.compilation = 'passed';

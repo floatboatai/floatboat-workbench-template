@@ -46,3 +46,9 @@ Edit `.agents/skills/floatboat-workbench/SKILL.md` and its references. `topics.j
 When Host APIs or authoring topics change, compare the sources recorded in [skill provenance](skill-provenance.md), update the corresponding portable guide and preserve the distinction between a standalone checkout and an installed Host instance. Validate command examples against package.json and signatures against the included SDK. The content should remain usable without the Desktop source repository.
 
 Data-bearing export adapts `WorkbenchDataSnapshot.ts` from Desktop using the same snapshot schema and data lock. `--bindings` controls export only; it does not read private Host settings or change runtime bindings. Keep tests for both application and migration packages.
+
+## Distribution builds and v3 runtime export
+
+The compiler supports a publication mode that bundles server dependencies, removes source maps and optionally transforms business modules. Runtime exports use the restricted profile, retain notices and produce the same descriptor/archive contracts as the Desktop implementation recorded in provenance.json. Validate both source and runtime output when changing these modules; run the runtime-package test outside the template dependency tree. See [build and delivery](runtime-packages.md).
+
+When this repository is nested inside another pnpm workspace, install with `pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts` so pnpm uses this repository's own lockfile and modules.

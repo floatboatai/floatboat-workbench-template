@@ -1,6 +1,6 @@
 # Floatboat workbench template
 
-Create a workbench with Codex, Claude Code or another coding tool. Run its React page, Node HTTP service and SQLite locally without installing Floatboat. Development is hosted in the private [floatboatai/floatboat-workbench-template](https://github.com/floatboatai/floatboat-workbench-template) repository. It is not open source and no open-source license has been selected; see [publication status](PUBLICATION.md).
+Create a workbench with Codex, Claude Code or another coding tool. Run its React page, Node HTTP service and SQLite locally without installing Floatboat. The repository is hosted at [floatboatai/floatboat-workbench-template](https://github.com/floatboatai/floatboat-workbench-template); see [publication status](PUBLICATION.md) for licensing.
 
 [中文说明](README.zh-CN.md) · [Agent instructions](AGENTS.md) · [Authoring skill](.agents/skills/floatboat-workbench/SKILL.md)
 
@@ -75,3 +75,17 @@ The package contains application source, migrations, tests, declared fixed resou
 Platform features are a separate integration: [connection boundary](docs/platform.md). Application metadata and releases: [manifest contract](docs/manifest.md). Toolchain changes and license readiness: [maintenance](docs/maintenance.md).
 
 For external resource snapshots, pass `--bindings .local/export-bindings.json`; see [resource export](docs/resources.md#模板-cli-导出外部资源) for the mapping and `--include-data`.
+
+## Distribution builds
+
+```sh
+pnpm build
+pnpm workbench:build -- --obfuscate
+pnpm workbench:pack -- --runtime
+```
+
+`build` produces the compiled server and UI in `app/dist/`. Runtime export creates `artifacts/<registry>-<version>-runtime.fbworkbench`: a v3 package with bundled dependencies, SDK, migrations and declared fixed resources, but no application source, node_modules, source maps or business data. A compatible Floatboat client installs it without recompiling or downloading npm dependencies. Runtime export always obfuscates business modules; obfuscation is not encryption.
+
+The original source-package command remains the default. Runtime export rejects `--include-data` and does not submit a store listing. See [build and delivery](docs/runtime-packages.md) for compatibility and boundaries. Repository CI builds and tests both package kinds and retains them in the `workbench-packages` Actions artifact.
+
+Keep `app/workbench.preview.json` synchronized with actual API/page contracts using fictional data. Show `workbench-preview-ready` after the real page renders; Floatboat uses this fixture for cover capture. Source exports include it; runtime exports omit it.

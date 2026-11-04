@@ -1,6 +1,6 @@
 # 工作台模板
 
-让 Codex、Claude Code 等外部 AI 工具创建工作台。无需安装 Floatboat，就能运行真实 React 页面、Node HTTP 服务和 SQLite。仓库托管在 [floatboatai/floatboat-workbench-template](https://github.com/floatboatai/floatboat-workbench-template)，目前为私有仓库，暂不开源，也未选择开源许可证；详见 [公开状态](PUBLICATION.md)。
+让 Codex、Claude Code 等外部 AI 工具创建工作台。无需安装 Floatboat，就能运行真实 React 页面、Node HTTP 服务和 SQLite。仓库托管在 [floatboatai/floatboat-workbench-template](https://github.com/floatboatai/floatboat-workbench-template)，许可状态见 [PUBLICATION.md](PUBLICATION.md)。
 
 ## 创建和预览
 
@@ -39,7 +39,23 @@ node tooling/guide.mjs --topic runtime
 
 runtime 主题提供 Host 创建工具与模板本地命令的对应关系；其他主题覆盖工程、页面设计、数据库、依赖资源、模型、Agent、ASR、Workflow、连接服务、日程和自动化。只维护 `.agents` 真源，用 `pnpm skills:sync` 生成 Claude 入口，`pnpm skills:check` 检查主题、链接和入口一致性。
 
-## 交付
+## 构建与仅运行包
+
+```sh
+pnpm build                             # 检查并构建服务端、页面和依赖
+pnpm workbench:build -- --obfuscate     # 对业务模块启用混淆
+pnpm workbench:pack -- --runtime        # 导出混淆后的仅运行包
+```
+
+构建产物位于 `app/dist/`。仅运行包输出为 `artifacts/<名称>-<版本>-runtime.fbworkbench`，包含运行文件、SDK、迁移、固定资源和依赖许可声明，不带源码、node_modules、source map 或业务数据。支持 v3 运行包的 Floatboat 客户端可直接导入运行，无需在用户机器安装 npm 依赖或编译。
+
+普通 `pnpm workbench:pack` 仍导出源码包。仅运行包默认使用与商店一致的业务混淆方案；混淆不是加密，不能保证无法逆向。仅运行包不支持 `--include-data`，也不会自动上架。详见 [构建与运行包契约](docs/runtime-packages.md)。
+
+页面/API 变化时同步维护 `app/workbench.preview.json` 的虚构演示数据，真实页面加载后显示 `workbench-preview-ready` 标记，供 Floatboat 发布时自动截图。源码包保留演示数据，仅运行包排除它。
+
+GitHub Actions 会执行构建、测试并生成两类包，下载入口在 workflow 的 `workbench-packages` artifact 中。
+
+## 源码包交付
 
 在模板仓库根目录执行：
 

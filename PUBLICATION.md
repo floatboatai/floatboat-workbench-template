@@ -1,12 +1,7 @@
 # Publication status
 
-This development repository is hosted privately at [floatboatai/floatboat-workbench-template](https://github.com/floatboatai/floatboat-workbench-template). The owner has explicitly chosen to keep it private for now. It is not an open-source release, no open-source license has been selected, and package manifests remain private. The Desktop/Backend licenses and visibility are unchanged.
+This repository contains the selected standalone Workbench template, SDK and build tooling. Repository visibility is controlled by its owner. The package manifests remain `private: true` to prevent accidental npm publication; that field does not describe GitHub visibility. This update does not select a software license.
 
-Before public release:
+`provenance.json` records the source snapshots and adapted files used by the standalone tooling. Its historical private-development labels describe the original extraction, not current GitHub visibility. Review the recorded scope and dependency notices when distributing template changes; access to this repository does not authorize copying unrelated Desktop or Backend code.
 
-- Obtain the owner's explicit decision to make the repository public and select licenses for the template and included SDK/compiler/protocol sources; add the approved LICENSE text and copyright attribution.
-- Review `provenance.json` and the actual files. It records selected source hashes, including locally modified source; it is not a claim that the private base commit alone reproduces this candidate.
-- Review public dependency license notices and add the required third-party notices. No embedded Node binary, installed dependency tree, authoring reference corpus or private Git history is included in the candidate source.
-- Run clean-install and preview/export checks on each supported operating system and review credentials/source contents before public release.
-
-Do not infer permission to publish all Desktop or Backend code from their package metadata. Only the selected standalone candidate is in scope for the future publication decision.
+Runtime exports retain third-party notices and any application LICENSE supplied by its author. They exclude installed dependencies, source maps and preview data. A file export is not a marketplace submission, license grant or authenticated platform build.

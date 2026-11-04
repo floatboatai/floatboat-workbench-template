@@ -23,7 +23,7 @@ export function App() {
     return () => { disposed = true; };
   }, [request]);
   return (
-    <main className="app-shell">
+    <main className="app-shell" data-test-id={info && !failed ? "workbench-preview-ready" : undefined}>
       <header className="app-header">
         <LayoutGrid aria-hidden="true" size={20} />
         <h1>{info?.name ?? text('loading')}</h1>

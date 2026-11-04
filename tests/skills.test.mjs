@@ -28,6 +28,7 @@ async function fixture(t) {
   await cp(join(repository, skillRelativePath), join(root, skillRelativePath), {
     recursive: true,
   });
+  await cp(join(repository, "docs"), join(root, "docs"), { recursive: true });
   await mkdir(join(root, "tooling"));
   await cp(
     join(repository, "tooling/guide.mjs"),
