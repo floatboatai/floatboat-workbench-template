@@ -27,6 +27,8 @@ export async function prepareTools() {
   await runNode([tsc, '-p', 'tooling/tsconfig.json']);
   for (const [entry, output] of [
     ['compiler/worker.ts', 'compiler.mjs'],
+    ['compiler/runtime-artifact.ts', 'runtime-artifact.mjs'],
+    ['compiler/publication-notices.ts', 'publication-notices.mjs'],
     ['contracts/workbenchManifest.ts', 'manifest.mjs'],
     ['transfer/WorkbenchTransferArchive.ts', 'archive.mjs'],
     ['transfer/WorkbenchAssetTransfer.ts', 'assets.mjs'],
@@ -73,7 +75,7 @@ async function checkSourceTree(root, path = '') {
 }
 
 export async function checkApplication(root = application, onDiagnostic = (issue) =>
-  console.error(`${issue.severity}: ${issue.path ?? ''}:${issue.line ?? ''} ${issue.code} ${issue.message}`)) {
+  console.error(`${issue.severity}: ${issue.path ?? ''}:${issue.line ?? ''} ${issue.code} ${issue.message}`), { publication } = {}) {
   const manifest = await readManifest(root);
   await checkSourceTree(root);
   await checkDependencies(root);
@@ -85,7 +87,7 @@ export async function checkApplication(root = application, onDiagnostic = (issue
   try {
     const reportPath = join(operation, 'report.json');
     const inputPath = join(operation, 'input.json');
-    await writeFile(inputPath, JSON.stringify({ sourceDirectory: root, reportPath, manifest }));
+    await writeFile(inputPath, JSON.stringify({ sourceDirectory: root, reportPath, manifest, ...(publication ? { publication } : {}) }));
     await runNode([join(generated, 'compiler.mjs'), inputPath]);
     const report = JSON.parse(await readFile(reportPath, 'utf8'));
     for (const issue of report.diagnostics) onDiagnostic(issue);

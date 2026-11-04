@@ -6,5 +6,8 @@
   "transferFormatVersion": 2,
   "nodeMajor": 22,
   "licenseDecision": "pending",
-  "distribution": "private-development"
+  "distribution": "standalone-template",
+  "runtimeTransferFormatVersion": 3,
+  "runtimePackageVersion": 1,
+  "runtimeProtection": "business-compatible-v1"
 }

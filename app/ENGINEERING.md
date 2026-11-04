@@ -10,3 +10,5 @@ The business app root is this directory. Run the authoring commands from the rep
 - Keep runtime dependency versions and lockfiles aligned; see `../docs/maintenance.md`. Native extensions do not belong in the application profile.
 - Add tests for business boundaries and persistence behavior, using temporary data rather than the user's preview database. Test files live under `tests/` and are run by `pnpm test` from the repository root.
 - Host calls are optional and require actual authorization. Show unavailable/error states and consult `../docs/platform.md`; preserve execution-unknown errors rather than retrying potentially completed external mutations blindly.
+
+- Distribution builds and runtime packages follow `../docs/runtime-packages.md`. Keep `workbench.preview.json` responses synchronized with the actual page/API and show the ready marker after rendering fictional preview data.

@@ -26,7 +26,7 @@
       "sourceSha256": "e78e54bc79f4bbcb836d1b71b0bc43593d90c8685563ca0f6aa0394ed2010283",
       "adapted": false,
       "extractedSha256": "112c1f0b16cca9dca1da259259f3a37382efa8cd4e6c74b08dd34e348d8ef41a",
-      "candidateSha256": "980bfa0fdac44a50b7993ecb450996848194c9344e81e51089f9b5c72bed2660"
+      "candidateSha256": "6e516bd5773e5f89a2bd84dd33ebb5953c76f9a0c849e2f35f9defa97c0b013c"
     },
     {
       "source": "resources/workbench-template/index.html",
@@ -90,7 +90,7 @@
       "sourceSha256": "d42d650a55ab5e73c331a9c3bbb4f055804fb8925d6d53ea41734fcf46f07d36",
       "adapted": false,
       "extractedSha256": "d42d650a55ab5e73c331a9c3bbb4f055804fb8925d6d53ea41734fcf46f07d36",
-      "candidateSha256": "a519bf7ff6b95cee8d295c4533c1f7890612f7b04fa422c4586ed4eb4275b548"
+      "candidateSha256": "df6bdf7c8c5eaa20bab2ecba0afe9005819a1d8877f830a9f8c80bb8ec7ac184"
     },
     {
       "source": "resources/workbench-template/src/ui/connection.ts",
@@ -202,7 +202,7 @@
       "sourceSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
       "adapted": false,
       "extractedSha256": "0f2d7d71bf6f7b2118fe180bb5f16b4b85e1419dc838193a8792e03cf4983c65",
-      "candidateSha256": "39f186e6ae066aba9ed5e4d578753adc1e8be38f1562631e233f6547a3671911"
+      "candidateSha256": "6d7d0c2b3d557a23ea2ac180c97aeefa267dee6b6ff169a8fa28ab9bf29ffe4f"
     },
     {
       "source": "src/main/workbench/sdk/maintenance.mts",
@@ -218,7 +218,7 @@
       "sourceSha256": "4bd685e61fbecbd024bc3d4089ed6f627fb617a6e50f5e83e2144943020d4b9f",
       "adapted": false,
       "extractedSha256": "4bd685e61fbecbd024bc3d4089ed6f627fb617a6e50f5e83e2144943020d4b9f",
-      "candidateSha256": "4bd685e61fbecbd024bc3d4089ed6f627fb617a6e50f5e83e2144943020d4b9f"
+      "candidateSha256": "5abd9294264c0ad36c7bf7053a3e6b84ce52060f5a931d83b157299f96cd84c2"
     },
     {
       "source": "src/main/workbench/sdk/runtime.mts",
@@ -226,7 +226,7 @@
       "sourceSha256": "718264ca513db8c6cd3de770f6a22c025b0ef2f46eab4f0a2894c503696b57e6",
       "adapted": false,
       "extractedSha256": "718264ca513db8c6cd3de770f6a22c025b0ef2f46eab4f0a2894c503696b57e6",
-      "candidateSha256": "718264ca513db8c6cd3de770f6a22c025b0ef2f46eab4f0a2894c503696b57e6"
+      "candidateSha256": "1c6a2e3433f7a308049b6d089815b7c39f4dcff89799c50eb44546c14dd4a5f7"
     },
     {
       "source": "src/main/workbench/compiler/diagnostics.ts",
@@ -250,7 +250,7 @@
       "sourceSha256": "18aef2ad12f0ef7f0d6ef759f16cf04fcb4138bb3fdd4973ac78ac4eea710214",
       "adapted": true,
       "extractedSha256": "eef2d72cb85fb03a12cb10458f0f482612812b84dd87b46d56ef6a5ee63796d9",
-      "candidateSha256": "eef2d72cb85fb03a12cb10458f0f482612812b84dd87b46d56ef6a5ee63796d9"
+      "candidateSha256": "a043af3db3d5649de4aea4feb802738464c5cfa70aad090ce487636a55882d39"
     },
     {
       "source": "src/main/workbench/compiler/typecheck.ts",
@@ -263,10 +263,11 @@
     {
       "source": "src/main/workbench/compiler/worker.ts",
       "destination": "tooling/compiler/worker.ts",
-      "sourceSha256": "424968c86a9608d719a8582c60935a71a83ca1066773cd033331a5791f8b6506",
+      "sourceSha256": "ae9ae628113c6076c03e61fc9d35ac5136d6feb083989bde481593378927bdf6",
       "adapted": true,
       "extractedSha256": "3b56f467ee044b8315d6e42061c19fdf877d71bc085af72931b813cb9fc4ec44",
-      "candidateSha256": "b41f6f8f2ff6e69a99e801cdc7dbaf40a3593088234f71f36f866603ba644862"
+      "candidateSha256": "ed2f0e219d28b874c569bbaade7f2531d6b4fdd61a0474082ee7e042b858ddd5",
+      "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518"
     },
     {
       "source": "src/common/workbench/workbenchManifest.ts",
@@ -274,7 +275,7 @@
       "sourceSha256": "9440dc476ef36a6103b38cbde88247a6f3eba5758160492ee56332dc63bde8a8",
       "adapted": true,
       "extractedSha256": "872013e720596930bb3f3ab8acca3f27b004fac44b499789f2033fa2104eecca",
-      "candidateSha256": "7662516619875908d99feebaa86e9bcfd3a5cb61e8f3f6083c81d89689006eb6"
+      "candidateSha256": "c513e0fcccab77709529d5928efee8cea61d86733adc970b47b6cc7115d3fdc0"
     },
     {
       "source": "src/common/workbench/workbenchCompilation.ts",
@@ -282,7 +283,7 @@
       "sourceSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7",
       "adapted": false,
       "extractedSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7",
-      "candidateSha256": "2ecfb321159a02dfaf46422b23e9805aaf5dcba90d2abf506c22c8b7299bacd7"
+      "candidateSha256": "25665d727e91f8fd0db00f242d4f47aef78b56c2e2f626502534aa93a24b65ce"
     },
     {
       "source": "src/common/workbench/workbenchTransfer.ts",
@@ -290,7 +291,7 @@
       "sourceSha256": "092aa442a2454e13f2430c2fe0311c31e80020a3e1021958f016abbc27c8f6b6",
       "adapted": true,
       "extractedSha256": "058ef1201089f28ff837ab49bdc34f13571d51bd2b12ca81d06f7771f8ba6f0b",
-      "candidateSha256": "893d1f353b19030e91307d39077cfb51a8e3f0d8118db217fc5fe58817142c6f"
+      "candidateSha256": "542bcf684d643843eb2f198fdd9fff265ecdf28d6778c3d85e4cbe353a82669f"
     },
     {
       "source": "src/main/workbench/transfer/WorkbenchTransferArchive.ts",
@@ -298,7 +299,7 @@
       "sourceSha256": "3c0d92574a3e561019fafbbc80728b175bda87a67c3d5491193cde0512f6a0c3",
       "adapted": true,
       "extractedSha256": "bc9dbff8e7037f6c1f325ad07d74f502f74d0a13af83b8f884c50a7f56d3d40a",
-      "candidateSha256": "d0757e0b5568e0fc85eacf9cdf6df8c764fc596c14cdf029c429daaed767ed2c"
+      "candidateSha256": "ec1e3438495b94c96436a52da51993047d6fe754f7534c91bb9bd4e70967e514"
     },
     {
       "source": "src/main/workbench/sdk/resources.mts",
@@ -347,6 +348,38 @@
       "adapted": true,
       "extractedSha256": "13c000cfe23138d6278265f93ed07169392918521d9d7adbd0da1518f769a605",
       "candidateSha256": "13c000cfe23138d6278265f93ed07169392918521d9d7adbd0da1518f769a605"
+    },
+    {
+      "source": "src/main/workbench/compiler/publication-code.ts",
+      "destination": "tooling/compiler/publication-code.ts",
+      "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+      "sourceSha256": "4cb55ac13d99ed9bb7c2e656e78e90f57df382e6bca5a794605f5a783877ba95",
+      "candidateSha256": "eb26938c8874a00c139aa8fbe1dd9769d8f6e36f0d34cd93ad54b3b5ab6ba77c",
+      "adapted": true
+    },
+    {
+      "source": "src/main/workbench/compiler/publication-notices.ts",
+      "destination": "tooling/compiler/publication-notices.ts",
+      "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+      "sourceSha256": "5712ad0988d7ef9f308ed24d266e903a8c2194db0a6b77bea5b8751275a4e636",
+      "candidateSha256": "5a9fdbb4bf411bea506b0fbafb32dea01ede6ec9c60179d1cc81506ead94eda0",
+      "adapted": true
+    },
+    {
+      "source": "src/main/workbench/WorkbenchRuntimeArtifact.ts",
+      "destination": "tooling/compiler/runtime-artifact.ts",
+      "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+      "sourceSha256": "e0c5ae7f40562367c60dcc1b506445bc77fb92ace74a7cfa36d789c2fbd77021",
+      "candidateSha256": "b75090efd7de944ab351fce992448bffdb2f445bca0d513b47a044a0e316778f",
+      "adapted": true
+    },
+    {
+      "source": "src/common/workbench/workbenchDistribution.ts",
+      "destination": "tooling/contracts/workbenchDistribution.ts",
+      "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+      "sourceSha256": "c8528219cd7c137a4392b57c3f8987b5a41ce12a045a7f092abc5cefa4541d06",
+      "candidateSha256": "c8528219cd7c137a4392b57c3f8987b5a41ce12a045a7f092abc5cefa4541d06",
+      "adapted": false
     }
   ],
   "additionalContractSources": [
@@ -405,6 +438,59 @@
         "adapted": true,
         "sourceSha256": "db931ac1d52c593fde126e50bd26681de9ebc28bc3d1d3b25556b5fb118f7b5a",
         "candidateSha256": "7662516619875908d99feebaa86e9bcfd3a5cb61e8f3f6083c81d89689006eb6"
+      }
+    ]
+  },
+  "runtimeBuildRevision": {
+    "date": "2026-11-04",
+    "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+    "scope": "Selected publication compiler, runtime identity, and stage/read artifact functions; no Desktop services, account data, credentials or private Git history.",
+    "adaptations": [
+      "Standalone dependency resolution uses the pinned repository node_modules.",
+      "Runtime artifact extraction omits Host-specific rebinding and minimum-version functions.",
+      "Notice scanning accepts the standalone dependency directory with canonical path containment.",
+      "Standalone exporter integrates publication mode with its existing frozen-source/resource flow, preserves v2 source export, and emits canonical v3 runtime metadata."
+    ],
+    "files": [
+      {
+        "source": "src/main/workbench/compiler/worker.ts",
+        "destination": "tooling/compiler/worker.ts",
+        "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+        "sourceSha256": "ae9ae628113c6076c03e61fc9d35ac5136d6feb083989bde481593378927bdf6",
+        "candidateSha256": "ed2f0e219d28b874c569bbaade7f2531d6b4fdd61a0474082ee7e042b858ddd5",
+        "adapted": true
+      },
+      {
+        "source": "src/main/workbench/compiler/publication-code.ts",
+        "destination": "tooling/compiler/publication-code.ts",
+        "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+        "sourceSha256": "4cb55ac13d99ed9bb7c2e656e78e90f57df382e6bca5a794605f5a783877ba95",
+        "candidateSha256": "eb26938c8874a00c139aa8fbe1dd9769d8f6e36f0d34cd93ad54b3b5ab6ba77c",
+        "adapted": true
+      },
+      {
+        "source": "src/main/workbench/compiler/publication-notices.ts",
+        "destination": "tooling/compiler/publication-notices.ts",
+        "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+        "sourceSha256": "5712ad0988d7ef9f308ed24d266e903a8c2194db0a6b77bea5b8751275a4e636",
+        "candidateSha256": "5a9fdbb4bf411bea506b0fbafb32dea01ede6ec9c60179d1cc81506ead94eda0",
+        "adapted": true
+      },
+      {
+        "source": "src/main/workbench/WorkbenchRuntimeArtifact.ts",
+        "destination": "tooling/compiler/runtime-artifact.ts",
+        "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+        "sourceSha256": "e0c5ae7f40562367c60dcc1b506445bc77fb92ace74a7cfa36d789c2fbd77021",
+        "candidateSha256": "b75090efd7de944ab351fce992448bffdb2f445bca0d513b47a044a0e316778f",
+        "adapted": true
+      },
+      {
+        "source": "src/common/workbench/workbenchDistribution.ts",
+        "destination": "tooling/contracts/workbenchDistribution.ts",
+        "sourceCommit": "dfb6765e0b4fc250d6e0b1d66a4f1f1f39a9e518",
+        "sourceSha256": "c8528219cd7c137a4392b57c3f8987b5a41ce12a045a7f092abc5cefa4541d06",
+        "candidateSha256": "c8528219cd7c137a4392b57c3f8987b5a41ce12a045a7f092abc5cefa4541d06",
+        "adapted": false
       }
     ]
   }

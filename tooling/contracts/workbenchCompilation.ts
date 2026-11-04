@@ -31,4 +31,5 @@ export interface WorkbenchCompilationInput {
   readonly sourceDirectory: string;
   readonly reportPath: string;
   readonly manifest: WorkbenchManifest;
+  readonly publication?: { readonly sourceAccess: import('./workbenchDistribution').WorkbenchSourceAccess };
 }

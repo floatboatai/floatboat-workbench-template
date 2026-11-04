@@ -5,11 +5,13 @@ import { copyFile, mkdir, mkdtemp, readdir, lstat, rm, open, readFile, writeFile
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { application, repository, checkApplication, readManifest } from './build.mjs';
 import { packDeclaredAssets, validateResourceBindings } from './assets.mjs';
+import { stageRuntimePackage } from './runtime-package.mjs';
 
 const files = ['manifest.json', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', 'index.html',
-  'REQUIREMENTS.md', 'DESIGN.md', 'ENGINEERING.md', 'LICENSE'];
+  'REQUIREMENTS.md', 'DESIGN.md', 'ENGINEERING.md', 'LICENSE', 'LICENSE.txt', 'THIRD_PARTY_NOTICES.txt', 'workbench.preview.json'];
 
-export async function exportApplication(destination, root = application, { bindings, includeData = false } = {}) {
+export async function exportApplication(destination, root = application, { bindings, includeData = false, runtime = false } = {}) {
+  if (runtime && includeData) throw new Error('RUNTIME_EXPORT_EXCLUDES_DATA');
   if (!isAbsolute(destination) || !destination.endsWith('.fbworkbench')) throw new Error('ABSOLUTE_FBWORKBENCH_OUTPUT_REQUIRED');
   const outputPath = relative(root, destination);
   if (!isAbsolute(outputPath) && outputPath !== '..' && !outputPath.startsWith(`..${sep}`))
@@ -45,7 +47,7 @@ export async function exportApplication(destination, root = application, { bindi
   };
   try {
     for (const path of files) {
-      try { await copy(path); } catch (error) { if (path !== 'LICENSE' || error.code !== 'ENOENT') throw error; }
+      try { await copy(path); } catch (error) { if (!['LICENSE', 'LICENSE.txt', 'THIRD_PARTY_NOTICES.txt', 'workbench.preview.json'].includes(path) || error.code !== 'ENOENT') throw error; }
     }
     await copy('src');
     await copy('tests');
@@ -59,7 +61,7 @@ export async function exportApplication(destination, root = application, { bindi
     }
     // 检查固定下来的源文件，防止创作期间的修改绕过刚完成的构建。
     const frozenRoot = join(contents, 'application');
-    const checkedManifest = await checkApplication(frozenRoot);
+    const checkedManifest = await checkApplication(frozenRoot, undefined, runtime ? { publication: { sourceAccess: 'restricted' } } : {});
     if (includeData) {
       const { acquireWorkbenchDataLock } = await import('../.generated/sdk/data-lock.mjs');
       const { snapshotWorkbenchData } = await import('../.generated/data-snapshot.mjs');
@@ -75,7 +77,9 @@ export async function exportApplication(destination, root = application, { bindi
       await writeFile(join(contents, 'operation-history.json'), JSON.stringify({ version: 1, coverage: 'unknown', entries: [] }));
     }
     await packDeclaredAssets(checkedManifest, root, staging, contents, { bindings, includeData, dataDirectory: includeData ? join(contents, 'data') : dataDirectory });
-    for (const generated of ['sdk', 'dist', '.workbench-vite'])
+    let runtimeArtifact;
+    if (runtime) runtimeArtifact = await stageRuntimePackage(frozenRoot, contents, staging);
+    else for (const generated of ['sdk', 'dist', '.workbench-vite'])
       await rm(join(frozenRoot, generated), { recursive: true, force: true });
     await mkdir(dirname(destination), { recursive: true });
     const reservation = await open(destination, 'wx', 0o600);
@@ -83,6 +87,7 @@ export async function exportApplication(destination, root = application, { bindi
     try {
       return await packWorkbench(contents, destination, {
         kind: includeData ? 'migration' : 'application', sourceAppId: checkedManifest.appId, name: checkedManifest.name, version: checkedManifest.version,
+        ...(runtimeArtifact ? { runtimeArtifact } : {}),
       });
     } catch (error) { await rm(destination, { force: true }); throw error; }
   } finally { try { await release?.(); } finally { await rm(staging, { recursive: true, force: true }); } }

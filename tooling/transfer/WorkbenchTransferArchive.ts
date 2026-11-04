@@ -77,7 +77,7 @@ export async function hashTransferFile(path: string): Promise<string> {
 export async function packWorkbench(
   root: string,
   destination: string,
-  info: Pick<WorkbenchTransferManifest, 'kind' | 'sourceAppId' | 'name' | 'version'>,
+  info: Pick<WorkbenchTransferManifest, 'kind' | 'sourceAppId' | 'name' | 'version' | 'runtimeArtifact'>,
 ): Promise<WorkbenchTransferManifest> {
   const files: WorkbenchTransferManifest['files'] = [];
   const budget = new Budget();
@@ -102,14 +102,15 @@ export async function packWorkbench(
   };
   await visit('');
   const body: Omit<WorkbenchTransferManifest, 'packageId'> = {
-    formatVersion: 2 as const,
+    formatVersion: info.runtimeArtifact ? (3 as const) : (2 as const),
     ...info,
     runtime: WORKBENCH_RUNTIME_PROFILE,
     sdkVersion: WORKBENCH_SDK_VERSION,
     exportedAt: new Date().toISOString(),
     files,
   };
-  const manifest = transferManifestSchema.parse({ ...body, packageId: packageId(body) });
+  const { packageId: _placeholder, ...canonicalBody } = transferManifestSchema.parse({ ...body, packageId: '0'.repeat(64) });
+  const manifest = transferManifestSchema.parse({ ...canonicalBody, packageId: packageId(canonicalBody) });
   const temporary = `${destination}.${randomUUID()}.partial`;
   const zip = new yazl.ZipFile();
   const pending = pipeline(zip.outputStream, createWriteStream(temporary, { flags: 'wx', mode: 0o600 }));
@@ -207,7 +208,7 @@ export async function unpackWorkbench(archive: string, destination: string): Pro
         manifest.kind === 'application' &&
         !file.path.startsWith('application/') &&
         !(
-          manifest.formatVersion === 2 &&
+          manifest.formatVersion >= 2 &&
           (file.path === 'workbench.lock.json' ||
             file.path.startsWith('assets/') ||
             file.path.startsWith('dependencies/'))

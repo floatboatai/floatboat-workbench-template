@@ -1,5 +1,19 @@
 # Local verification — 2026-09-18
 
+## Runtime build and delivery — 2026-11-04
+
+Validated on macOS arm64, Node 22.22.2 and pnpm 10.22.0:
+
+- Frozen install with install scripts disabled; guidance synchronization/check passed.
+- `workbench:check`, `pnpm test` (2 tests), `pnpm build`, `pnpm build -- --obfuscate`, and both source/runtime CLI exports passed.
+- `pnpm test:tooling`: 34 tests passed, including the original source/data delivery flows and the new runtime test. Runtime output runs from an OS temporary directory outside the template with no node_modules; actual HTTP, React server dependency, WASM streaming, resource/dependency preservation, hash integrity and source exclusion are checked.
+- Source and runtime package source hashes match, including business files under `src/sdk/`; only the generated root SDK is excluded.
+- The generated runtime package was imported by real Desktop project/transfer/build/lifecycle/process services from `dfb6765e0`. It activated successfully, `prepareImport` was not called, no source directory was created, and its API and obfuscated UI rendered in Chromium.
+- The Desktop static cover preview rendered the template fixture at 1280px and 375px, reached `workbench-preview-ready`, produced no page errors and did not overflow. This path uses mocked API responses and does not start the business server or access its data.
+
+The cross-repository checks used isolated temporary Host storage and databases. They do not prove a full Electron UI import journey, a live store submission, account entitlements, or native Windows behavior. Repository GitHub Actions provides the standalone Linux build/test/package gate; its final status is recorded in the PR.
+
+
 ## 2026-09-20 Remote-clone application and Electron handoff
 
 Pushed live preview and Connector SDK/guidance to the private template repository (`6269987`), cloned that remote revision into a separate application checkout and built a project delivery workbench with CRUD, SQLite, fixed assets, managed delivery files and a bundled deterministic Workflow.

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "path": "/",
+  "readyTestId": "workbench-preview-ready",
+  "responses": [
+    {
+      "method": "GET",
+      "path": "/api/app",
+      "body": {
+        "name": "My Workbench",
+        "version": "0.1.0",
+        "platform": "not-connected"
+      }
+    }
+  ]
+}

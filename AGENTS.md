@@ -12,4 +12,4 @@ Build the user's business app in `app/`. Read `app/REQUIREMENTS.md` and preserve
 - Changes to `sdk/` or `tooling/` affect the development platform; read [maintenance](docs/maintenance.md) and run the relevant tooling tests. Generated output is not the editing surface.
 - `.agents/skills/floatboat-workbench/` is the guidance source. Generate the `.claude/skills/floatboat-workbench/SKILL.md` compatibility entry with `pnpm skills:sync`; verify it with `pnpm skills:check`. The Claude entry points to the same content and has no separate reference copies.
 
-The repository is privately hosted under floatboatai. Publishing it or choosing an open-source license remains an owner decision; see [PUBLICATION.md](PUBLICATION.md). Exporting an application is not a store submission.
+Repository visibility and licensing remain owner decisions; see [PUBLICATION.md](PUBLICATION.md). For distribution builds, runtime-only packages or cover demonstration data, read [build and delivery](docs/runtime-packages.md). Exporting an application is not a store submission.

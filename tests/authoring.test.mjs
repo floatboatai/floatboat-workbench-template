@@ -162,6 +162,9 @@ test('初始化独立名称，拒绝非法上架标识及重复覆盖', async (t
   const result = await initializeApplication({ registry: 'deal-tracker', name: '项目管理', description: '跟进项目进度' }, root);
   assert.equal(result.registryName, 'deal-tracker');
   assert.equal(result.name, '项目管理');
+  const preview = JSON.parse(await readFile(join(root, 'workbench.preview.json'), 'utf8'));
+  assert.equal(preview.responses[0].body.name, result.name);
+  assert.equal(preview.responses[0].body.version, result.version);
   assert.notEqual(result.appId, manifest.appId);
   const before = await readFile(join(root, 'manifest.json'), 'utf8');
   await assert.rejects(initializeApplication({ registry: 'different', name: 'Other', description: 'Other' }, root), /ALREADY_INITIALIZED/);

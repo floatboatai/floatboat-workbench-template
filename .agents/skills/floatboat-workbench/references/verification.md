@@ -23,3 +23,9 @@ Manifest changes need check/pack validation even when the UI is unchanged. For d
 | Preview exits | Inspect the application exception and startup output; the Node version footer alone is not the cause |
 
 Report changed behavior, checks actually run, preview/export instructions and unverified integrations. Avoid treating generated code, a successful build or a ready HTTP server as completed business/visual acceptance.
+
+## Runtime delivery and cover capture
+
+For prebuilt delivery, run `pnpm build` and `pnpm workbench:pack -- --runtime`. Verify the v3 archive has a runtime descriptor, SDK and migrations but no source, node_modules, source maps or local data. Test an unpacked copy outside the template dependency tree. Report full Desktop import and browser checks separately from Node tests. Existing source export and explicit data migration remain available; runtime export rejects data inclusion.
+
+Maintain `app/workbench.preview.json` with fictional responses for every page request, matching the implemented schemas. Render its `readyTestId` only after the page is populated. Source export carries this fixture for Floatboat's cover capture; runtime export omits it. Build success alone does not prove the fixture or screenshot is correct. See [build and delivery](../../../../docs/runtime-packages.md).
