@@ -7,6 +7,10 @@ import type {
   HostConnection,
   ModelEvent,
   ModelResult,
+  ModelCatalog,
+  SpeechResult,
+  ImageGenerationResult,
+  DecisionResult,
   WorkflowEvent,
   WorkflowRun,
   AgentTaskEvent,
@@ -265,6 +269,13 @@ export function createHostClient(
       generateObject: (input, options) =>
         request<ModelResult & { object: unknown }>('llm', 'generateObject', withDefaultModel(input), options),
       streamText: (input, options) => events<ModelEvent>('llm', 'streamText', withDefaultModel(input), options),
+      // 媒体与决策模型的默认值由 Host 模型目录决定，不套用文本默认模型。
+      listModels: (input = {}) => request<ModelCatalog>('llm', 'listModels', input),
+      generateSpeech: (input, options = {}) =>
+        request<SpeechResult>('llm', 'generateSpeech', input, { timeoutMs: 150_000, ...options }),
+      generateImage: (input, options = {}) =>
+        request<ImageGenerationResult>('llm', 'generateImage', input, { timeoutMs: 330_000, ...options }),
+      decide: (input, options) => request<DecisionResult>('llm', 'decide', input, options),
     },
     workflows: {
       start: (input, options) => request('workflows', 'start', input, options),

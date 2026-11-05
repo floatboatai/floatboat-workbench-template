@@ -25,12 +25,114 @@ export interface CallOptions {
   timeoutMs?: number;
 }
 
+/** manifest 声明的目录资源中的相对路径；Host 不向工作台暴露本机绝对路径。 */
+export interface ResourceReference {
+  resourceId: string;
+  relativePath: string;
+}
+
+/** 图片输入三选一：声明资源文件、https 地址（由 Host 下载）或图片 data URL；单张不超过 10 MiB。 */
+export type ImageInput = { resource: ResourceReference } | { url: string } | { dataUrl: string };
+
 export interface ModelInput {
   prompt: string;
   model?: string;
   system?: string;
   maxOutputTokens?: number;
   temperature?: number;
+  /** 最多 8 张；模型或其协议不支持图片时返回 LLM_IMAGE_INPUT_UNSUPPORTED 且不计费。 */
+  images?: ImageInput[];
+}
+
+export type ModelKind = 'text' | 'speech' | 'image' | 'decision';
+
+export interface ModelCatalogEntry {
+  id: string;
+  kinds: ModelKind[];
+  inputs: Array<'text' | 'image'>;
+  source: 'platform' | 'local';
+}
+
+export interface ModelCatalog {
+  models: ModelCatalogEntry[];
+  /** 各种类在未指定 model 时使用的模型。 */
+  defaults: Partial<Record<ModelKind, string>>;
+  /** 平台媒体目录状态；unavailable 时语音、图片与决策列表可能不完整。 */
+  media: 'available' | 'unavailable';
+}
+
+export interface ModelUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+export interface StoredMedia extends ResourceReference {
+  byteLength: number;
+}
+
+export type SpeechFormat = 'mp3' | 'wav' | 'opus' | 'aac' | 'flac' | 'pcm';
+
+export interface SpeechInput {
+  text: string;
+  model?: string;
+  voice?: string;
+  format?: SpeechFormat;
+  speed?: number;
+  instructions?: string;
+  /** 必须是 access 为 read-write 的目录资源。 */
+  output: ResourceReference;
+}
+
+export interface SpeechResult {
+  model: string;
+  output: StoredMedia & { format: SpeechFormat };
+  requestId: string;
+}
+
+export interface ImageGenerationInput {
+  prompt: string;
+  model?: string;
+  /** 如 1024x1024，或 auto。 */
+  size?: string;
+  quality?: 'auto' | 'low' | 'medium' | 'high' | 'standard' | 'hd';
+  /** 1–4 张；多张时在 output 文件名后追加 -1、-2。 */
+  count?: number;
+  /** 参考图；提供时使用图片编辑接口。 */
+  images?: ImageInput[];
+  /** 必须是 access 为 read-write 的目录资源。 */
+  output: ResourceReference;
+}
+
+export interface ImageGenerationResult {
+  model: string;
+  images: Array<StoredMedia & { mimeType: string }>;
+  revisedPrompt?: string;
+  usage?: ModelUsage;
+  requestId: string;
+}
+
+type DecisionInstructions = string | Json[] | { [key: string]: Json };
+
+export type DecisionQuestion =
+  | { type: 'noul'; instructions: DecisionInstructions; criteria?: Json }
+  | { type: 'choice'; instructions: DecisionInstructions; criteria: Json }
+  | { type: 'score'; instructions: DecisionInstructions; criteria: Json };
+
+export interface DecisionInput {
+  /** 默认 jev-latest。 */
+  model?: string;
+  state: string | Json[] | { [key: string]: Json };
+  /** 1–32 个问题，键为 [A-Za-z0-9_-]{1,64}。 */
+  questions: Record<string, DecisionQuestion>;
+}
+
+export interface DecisionResult {
+  model: string;
+  /** Jev 原样返回的回答，键与 questions 对应。 */
+  answers: Record<string, Json>;
+  usage?: ModelUsage;
+  requestId: string;
 }
 
 export interface ModelResult {
@@ -209,6 +311,11 @@ export interface HostClient {
       options?: CallOptions,
     ): Promise<ModelResult & { object: unknown }>;
     streamText(input: ModelInput, options?: CallOptions): AsyncIterable<ModelEvent>;
+    listModels(input?: { kind?: ModelKind }): Promise<ModelCatalog>;
+    generateSpeech(input: SpeechInput, options?: CallOptions): Promise<SpeechResult>;
+    /** 生成较慢，默认请求期限 330 秒。 */
+    generateImage(input: ImageGenerationInput, options?: CallOptions): Promise<ImageGenerationResult>;
+    decide(input: DecisionInput, options?: CallOptions): Promise<DecisionResult>;
   };
   workflows: {
     start(input: WorkflowStart, options?: CallOptions): Promise<{ runId: string; idempotencyKey: string }>;
