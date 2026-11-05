@@ -22,6 +22,8 @@ export const workbenchCompilationResultSchema = z
     typecheck: z.enum(['passed', 'failed', 'not-applicable']),
     compilation: z.enum(['passed', 'failed', 'not-run']),
     diagnostics: z.array(workbenchCompilationDiagnosticSchema).max(100),
+    /** 服务端源码使用的 Host SDK 操作与能力特性；仅构建成功时给出。 */
+    operations: z.array(z.string().max(160)).max(256).optional(),
   })
   .strict();
 

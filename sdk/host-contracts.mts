@@ -34,17 +34,58 @@ export interface ResourceReference {
 /** 图片输入三选一：声明资源文件、https 地址（由 Host 下载）或图片 data URL；单张不超过 10 MiB。 */
 export type ImageInput = { resource: ResourceReference } | { url: string } | { dataUrl: string };
 
-export interface ModelInput {
-  prompt: string;
+export type ChatContentPart = { type: 'text'; text: string } | { type: 'image'; image: ImageInput };
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+/** assistant 消息直接使用上一轮结果的 `assistant` 字段原样追加，hostState 不可修改。 */
+export type ChatMessage =
+  | { role: 'system'; content: string }
+  | { role: 'user'; content: string | ChatContentPart[] }
+  | { role: 'assistant'; content?: string; toolCalls?: ToolCall[]; hostState?: string }
+  | { role: 'tool'; toolCallId: string; content: string };
+
+export interface ToolDefinition {
+  /** ^[a-zA-Z][a-zA-Z0-9_-]{0,63}$ */
+  name: string;
+  description?: string;
+  /** JSON Schema，顶层必须是 type: 'object'。 */
+  parameters: Record<string, unknown>;
+}
+
+export type ToolChoice = 'auto' | 'none' | 'required' | { name: string };
+export type ReasoningEffort = 'off' | 'low' | 'medium' | 'high';
+
+/** prompt 与 messages 二选一；图片在 prompt 模式用 images，在 messages 模式放进 user 消息。 */
+export type ModelConversation =
+  | {
+      prompt: string;
+      messages?: never;
+      /** 最多 8 张；模型或其协议不支持图片时返回 LLM_IMAGE_INPUT_UNSUPPORTED 且不计费。 */
+      images?: ImageInput[];
+    }
+  | { messages: ChatMessage[]; prompt?: never; images?: never };
+
+export type ModelInput = ModelConversation & {
   model?: string;
   system?: string;
   maxOutputTokens?: number;
   temperature?: number;
-  /** 最多 8 张；模型或其协议不支持图片时返回 LLM_IMAGE_INPUT_UNSUPPORTED 且不计费。 */
-  images?: ImageInput[];
-}
+  /** 默认 off；模型不支持时按 off 处理。 */
+  reasoning?: ReasoningEffort;
+};
 
-export type ModelKind = 'text' | 'speech' | 'image' | 'decision';
+/** 工具由工作台自己执行：结果含 toolCalls 时执行后把 assistant 与 tool 消息追加到 messages 再调用。 */
+export type TextModelInput = ModelInput & {
+  tools?: ToolDefinition[];
+  toolChoice?: ToolChoice;
+};
+
+export type ModelKind = 'text' | 'speech' | 'image' | 'decision' | 'embedding' | 'rerank';
 
 export interface ModelCatalogEntry {
   id: string;
@@ -57,7 +98,7 @@ export interface ModelCatalog {
   models: ModelCatalogEntry[];
   /** 各种类在未指定 model 时使用的模型。 */
   defaults: Partial<Record<ModelKind, string>>;
-  /** 平台媒体目录状态；unavailable 时语音、图片与决策列表可能不完整。 */
+  /** 平台媒体目录状态；unavailable 时语音、图片、决策、向量与重排列表可能不完整。 */
   media: 'available' | 'unavailable';
 }
 
@@ -127,6 +168,38 @@ export interface DecisionInput {
   questions: Record<string, DecisionQuestion>;
 }
 
+export interface EmbedInput {
+  /** 必填：不同模型的向量不可混用，请连同向量一起保存模型 ID。 */
+  model: string;
+  /** 最多 256 条，单条不超过 32000 字符。 */
+  input: string | string[];
+  dimensions?: number;
+}
+
+export interface EmbedResult {
+  model: string;
+  /** 与 input 顺序一致。 */
+  embeddings: number[][];
+  usage?: ModelUsage;
+  requestId: string;
+}
+
+export interface RerankInput {
+  model?: string;
+  query: string;
+  /** 最多 1000 篇，单篇不超过 32000 字符。 */
+  documents: string[];
+  topN?: number;
+}
+
+export interface RerankResult {
+  model: string;
+  /** 按 relevanceScore 降序；index 指向 documents 中的位置。 */
+  results: Array<{ index: number; relevanceScore: number }>;
+  usage?: ModelUsage;
+  requestId: string;
+}
+
 export interface DecisionResult {
   model: string;
   /** Jev 原样返回的回答，键与 questions 对应。 */
@@ -142,10 +215,15 @@ export interface ModelResult {
   finishReason: string;
   requestId: string;
   usage?: { inputTokens: number; outputTokens: number; totalTokens: number };
+  /** finishReason 为 TOOL_CALLS 时出现；inputError 表示参数不符合工具 schema。 */
+  toolCalls?: Array<ToolCall & { inputError?: string }>;
+  /** 可原样追加到 messages 的 assistant 消息，含推理续聊所需的加密 hostState。 */
+  assistant: { role: 'assistant'; content: string; toolCalls?: ToolCall[]; hostState?: string };
 }
 
 export type ModelEvent =
   | { type: 'delta'; text: string; model: string; requestId: string }
+  | { type: 'tool-call'; toolCall: ToolCall & { inputError?: string }; model: string; requestId: string }
   | ModelResult
   | { type: 'done'; requestId: string };
 
@@ -305,17 +383,19 @@ export interface HostClient {
     }>;
   };
   llm: {
-    generateText(input: ModelInput, options?: CallOptions): Promise<ModelResult>;
+    generateText(input: TextModelInput, options?: CallOptions): Promise<ModelResult>;
     generateObject(
       input: ModelInput & { schema: Record<string, unknown> },
       options?: CallOptions,
     ): Promise<ModelResult & { object: unknown }>;
-    streamText(input: ModelInput, options?: CallOptions): AsyncIterable<ModelEvent>;
+    streamText(input: TextModelInput, options?: CallOptions): AsyncIterable<ModelEvent>;
     listModels(input?: { kind?: ModelKind }): Promise<ModelCatalog>;
     generateSpeech(input: SpeechInput, options?: CallOptions): Promise<SpeechResult>;
     /** 生成较慢，默认请求期限 330 秒。 */
     generateImage(input: ImageGenerationInput, options?: CallOptions): Promise<ImageGenerationResult>;
     decide(input: DecisionInput, options?: CallOptions): Promise<DecisionResult>;
+    embed(input: EmbedInput, options?: CallOptions): Promise<EmbedResult>;
+    rerank(input: RerankInput, options?: CallOptions): Promise<RerankResult>;
   };
   workflows: {
     start(input: WorkflowStart, options?: CallOptions): Promise<{ runId: string; idempotencyKey: string }>;

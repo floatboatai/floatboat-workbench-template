@@ -1,6 +1,7 @@
 // ABOUTME: 工作台 manifest、安装记录与本地运行状态的跨进程契约。
 
 import { z } from 'zod';
+import { workbenchRequirementNameSchema } from './workbenchOperations';
 import { workbenchBrowserPolicySchema, workbenchStaticAssetSchema } from './workbenchBrowserPolicy';
 import { workbenchServiceDeclarationSchema } from './workbenchConnections';
 import { workbenchDependencySchema, workbenchResourceSchema, validateWorkbenchAssetDeclarations } from './workbenchAssets';
@@ -86,6 +87,20 @@ export const workbenchManifestSchema = z
     dependencies: z.array(workbenchDependencySchema).max(64).optional(),
     resources: z.array(workbenchResourceSchema).max(64).optional(),
     connectedServices: z.array(workbenchServiceDeclarationSchema).max(32).optional(),
+    /**
+     * 依赖的、超出基线的 Host SDK 操作与能力特性，由受管构建扫描生成，作者可手动补充。
+     * 字段只在需要时出现：旧客户端的严格校验会拒收含该字段的 manifest。
+     */
+    requires: z
+      .object({
+        operations: z
+          .array(workbenchRequirementNameSchema)
+          .min(1)
+          .max(128)
+          .refine((values) => new Set(values).size === values.length, '依赖操作不能重复'),
+      })
+      .strict()
+      .optional(),
     contributions: z.array(workbenchContributionSchema).max(30).default([]),
     license: z.string().max(100).optional(),
   })

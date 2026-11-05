@@ -30,6 +30,7 @@ export async function prepareTools() {
     ['compiler/runtime-artifact.ts', 'runtime-artifact.mjs'],
     ['compiler/publication-notices.ts', 'publication-notices.mjs'],
     ['contracts/workbenchManifest.ts', 'manifest.mjs'],
+    ['contracts/workbenchOperations.ts', 'operations.mjs'],
     ['transfer/WorkbenchTransferArchive.ts', 'archive.mjs'],
     ['transfer/WorkbenchAssetTransfer.ts', 'assets.mjs'],
     ['transfer/WorkbenchDataSnapshot.ts', 'data-snapshot.mjs'],
@@ -74,6 +75,22 @@ async function checkSourceTree(root, path = '') {
   }
 }
 
+/** 与 Floatboat 受管构建一致：超出基线的 Host 操作写入 manifest.requires，旧客户端据此提示升级。 */
+async function recordRequirements(root, manifest, detected) {
+  const { mergeWorkbenchRequirements } = await import('../.generated/operations.mjs');
+  const operations = mergeWorkbenchRequirements(manifest.requires?.operations, detected);
+  if (JSON.stringify(operations) === JSON.stringify(manifest.requires?.operations)) return manifest;
+  const path = join(root, 'manifest.json');
+  const raw = await readFile(path, 'utf8');
+  const value = JSON.parse(raw);
+  if (operations) value.requires = { operations };
+  else delete value.requires;
+  const { writeFile } = await import('node:fs/promises');
+  await writeFile(path, `${JSON.stringify(value, null, /^\{\r?\n([ \t]+)"/u.exec(raw)?.[1] ?? '  ')}\n`);
+  const { requires: _previous, ...rest } = manifest;
+  return operations ? { ...rest, requires: { operations } } : rest;
+}
+
 export async function checkApplication(root = application, onDiagnostic = (issue) =>
   console.error(`${issue.severity}: ${issue.path ?? ''}:${issue.line ?? ''} ${issue.code} ${issue.message}`), { publication } = {}) {
   const manifest = await readManifest(root);
@@ -92,6 +109,6 @@ export async function checkApplication(root = application, onDiagnostic = (issue
     const report = JSON.parse(await readFile(reportPath, 'utf8'));
     for (const issue of report.diagnostics) onDiagnostic(issue);
     if (!report.passed) throw new Error('WORKBENCH_CHECK_FAILED');
-    return manifest;
+    return await recordRequirements(root, manifest, report.operations ?? []);
   } finally { await rm(operation, { recursive: true, force: true }); }
 }

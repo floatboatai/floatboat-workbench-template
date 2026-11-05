@@ -11,6 +11,8 @@ import type {
   SpeechResult,
   ImageGenerationResult,
   DecisionResult,
+  EmbedResult,
+  RerankResult,
   WorkflowEvent,
   WorkflowRun,
   AgentTaskEvent,
@@ -276,6 +278,8 @@ export function createHostClient(
       generateImage: (input, options = {}) =>
         request<ImageGenerationResult>('llm', 'generateImage', input, { timeoutMs: 330_000, ...options }),
       decide: (input, options) => request<DecisionResult>('llm', 'decide', input, options),
+      embed: (input, options) => request<EmbedResult>('llm', 'embed', input, options),
+      rerank: (input, options) => request<RerankResult>('llm', 'rerank', input, options),
     },
     workflows: {
       start: (input, options) => request('workflows', 'start', input, options),

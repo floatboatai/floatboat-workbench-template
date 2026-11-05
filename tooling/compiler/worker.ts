@@ -29,10 +29,11 @@ let result: WorkbenchCompilationResult = {
   diagnostics: [],
 };
 let staticDirectory: string | false = false;
+const operations = new Set<string>();
 try {
   const issues = [
     ...checkPageEntry(root, input.manifest.build.staticAssets),
-    ...checkTypes(root, toolchain, input.manifest),
+    ...checkTypes(root, toolchain, input.manifest, operations),
   ].slice(0, 100);
   result = { ...result, diagnostics: issues };
   if (!issues.some((issue) => issue.severity === 'error')) {
@@ -145,6 +146,7 @@ try {
     });
     result.passed = true;
     result.compilation = 'passed';
+    result.operations = [...operations].sort().slice(0, 256);
   }
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

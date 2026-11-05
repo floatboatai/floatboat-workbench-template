@@ -7,13 +7,16 @@ import type { WorkbenchManifest } from '../contracts/workbenchManifest';
 import type { WorkbenchCompilationDiagnostic } from '../contracts/workbenchCompilation';
 import { diagnostic, inside, typeDiagnostic } from './diagnostics';
 import { checkModuleCycles } from './module-structure';
+import { collectWorkbenchHostOperations } from './host-operations';
 
 const nodeModules = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
 
+/** operations 用于收集服务端源码实际调用的 Host SDK 操作；浏览器端不能访问 Host SDK，不参与扫描。 */
 export function checkTypes(
   root: string,
   toolchain: string,
   manifest: WorkbenchManifest,
+  operations?: Set<string>,
 ): WorkbenchCompilationDiagnostic[] {
   const configPath = join(root, 'tsconfig.json');
   const config = ts.readConfigFile(configPath, ts.sys.readFile);
@@ -76,6 +79,18 @@ export function checkTypes(
     const program = ts.createProgram(entryFiles, options, host);
     results.push(...ts.getPreEmitDiagnostics(program).map((issue) => typeDiagnostic(ts, issue, root)));
     results.push(...checkModuleCycles(program, root, options, host));
+    if (kind === 'server' && operations) {
+      const appFiles = program
+        .getSourceFiles()
+        .filter(
+          (file) =>
+            inside(root, file.fileName) &&
+            !file.isDeclarationFile &&
+            !file.fileName.includes('/node_modules/') &&
+            !relative(root, file.fileName).replaceAll('\\', '/').startsWith('sdk/'),
+        );
+      for (const operation of collectWorkbenchHostOperations(ts, program, appFiles)) operations.add(operation);
+    }
     for (const file of program.getSourceFiles()) {
       if (!inside(root, file.fileName) || file.isDeclarationFile || file.fileName.includes('/node_modules/')) continue;
       const path = relative(root, file.fileName).replaceAll('\\', '/');
