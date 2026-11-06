@@ -36,6 +36,8 @@ export async function connectLocalHost(
     instance = process.env.FLOATBOAT_HOST_INSTANCE,
     offline = process.env.FLOATBOAT_HOST_MODE === "offline",
     intervalMs = 3000,
+    // 须小于 Host 租约有效期（默认 30 秒），宽限期内 Host 侧租约仍有效。
+    leaseGraceMs = 20000,
     onChange = () => {},
     onStatus = (code) => process.stdout.write(`[Floatboat] ${code}\n`),
   } = {},
@@ -43,6 +45,7 @@ export async function connectLocalHost(
   let selected = instance,
     descriptor,
     lease,
+    renewedAt = 0,
     timer,
     running,
     stopping = false,
@@ -112,13 +115,35 @@ export async function connectLocalHost(
     );
     return candidates.filter(Boolean);
   }
+  async function drop(error) {
+    if (lease)
+      await post(descriptor, "/disconnect", { lease }).catch(() => {});
+    lease = undefined;
+    if (value) publish(null);
+    if (!stopping)
+      report(
+        /^[A-Z][A-Z_]+$/.test(error.message)
+          ? error.message
+          : "HOST_NOT_CONNECTED",
+      );
+  }
+  async function renew() {
+    try {
+      await post(descriptor, "/heartbeat", { lease });
+      renewedAt = Date.now();
+    } catch (error) {
+      if (stopping) return;
+      // Host 返回错误码表示租约已失效，立即重连；超时或连接中断可能只是 Host 主进程短暂繁忙，
+      // 宽限期内保留租约继续续期，避免中断正在进行的调用。
+      const rejected = /^[A-Z][A-Z_]+$/.test(error.message);
+      if (!rejected && Date.now() - renewedAt < leaseGraceMs) return;
+      await drop(error);
+    }
+  }
   async function tick() {
     if (stopping || offline) return;
+    if (lease) return renew();
     try {
-      if (lease) {
-        await post(descriptor, "/heartbeat", { lease });
-        return;
-      }
       const hosts = await discover();
       if (hosts.length > 1) {
         report("HOST_INSTANCE_REQUIRED: set FLOATBOAT_HOST_INSTANCE");
@@ -134,6 +159,7 @@ export async function connectLocalHost(
         throw new Error("HOST_CONNECTION_INVALID");
       safeAddress(result.connection.url, true);
       lease = result.lease;
+      renewedAt = Date.now();
       selected = descriptor.instance;
       if (!stopping) {
         publish(result);
@@ -141,16 +167,7 @@ export async function connectLocalHost(
       }
     } catch (error) {
       if (stopping) return;
-      if (lease)
-        await post(descriptor, "/disconnect", { lease }).catch(() => {});
-      lease = undefined;
-      if (value) publish(null);
-      if (!stopping)
-        report(
-          /^[A-Z][A-Z_]+$/.test(error.message)
-            ? error.message
-            : "HOST_NOT_CONNECTED",
-        );
+      await drop(error);
     }
   }
   const poll = () => {

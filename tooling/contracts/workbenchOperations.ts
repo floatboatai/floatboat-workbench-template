@@ -78,10 +78,17 @@ export const WORKBENCH_SDK_OPERATIONS = [
 ] as const;
 
 /**
- * 不新增方法、但旧客户端会因严格入参校验拒绝的能力特性。
- * 构建扫描在 llm 文本调用的参数中发现对应字段时记录。
+ * 不新增 HostClient 方法、但旧客户端不支持的能力特性。
+ * 构建扫描在 llm 文本调用或 Agent 调用的参数中发现对应字段，或服务端注册 Agent 工具时记录。
  */
-export const WORKBENCH_SDK_FEATURES = ['llm.images', 'llm.messages', 'llm.tools', 'llm.reasoning'] as const;
+export const WORKBENCH_SDK_FEATURES = [
+  'llm.images',
+  'llm.messages',
+  'llm.tools',
+  'llm.reasoning',
+  'agent.instructions',
+  'agent.tools',
+] as const;
 
 export const workbenchRequirementNameSchema = z
   .string()

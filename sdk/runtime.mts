@@ -15,6 +15,7 @@ import {
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { HostConnection } from './host.mjs';
 import type { RouteContext, WorkbenchManifest, WorkbenchServer } from './runtime-contracts.mjs';
+import type { AgentToolCall, AgentToolDefinition } from './agent-contracts.mjs';
 import { errorFields } from './errors.mjs';
 import { readWorkbenchBrowserPolicy, workbenchBrowserHeaders, WORKBENCH_MIME_TYPES } from './browser-policy.mjs';
 import { createWorkbenchBrowserDiagnostics } from './runtime-diagnostics.mjs';
@@ -74,6 +75,10 @@ export async function createWorkbenchServer(
   }
   const routes: Route[] = [];
   const actions = new Map<string, (input: unknown) => unknown | Promise<unknown>>();
+  const agentTools = new Map<
+    string,
+    { definition: AgentToolDefinition; handler: (call: AgentToolCall) => unknown | Promise<unknown> }
+  >();
   let url: string | undefined;
   let closing = false;
   let closed = false;
@@ -180,6 +185,46 @@ export async function createWorkbenchServer(
       if (!action) return send(response, { error: { code: 'APP_ACTION_NOT_FOUND' } }, 404);
       return send(response, await trackTask(async () => action(body.input), `action:${body.action}`));
     }
+    // 只供 Host 在 Agent 运行时列出与执行工作台工具；与 action 一样用进程 nonce 鉴权，页面无法直接调用。
+    if (requestUrl.pathname === '/__workbench/agent-tools' && request.method === 'GET') {
+      if (!equalToken(request.headers.authorization?.replace(/^Bearer /, ''), config.nonce))
+        return send(response, {}, 401);
+      return send(response, { tools: [...agentTools.values()].map((tool) => tool.definition) });
+    }
+    if (requestUrl.pathname === '/__workbench/agent-tool' && request.method === 'POST') {
+      if (!equalToken(request.headers.authorization?.replace(/^Bearer /, ''), config.nonce))
+        return send(response, {}, 401);
+      const body = await readBody(request);
+      const tool = typeof body.name === 'string' ? agentTools.get(body.name) : undefined;
+      if (!tool) return send(response, { error: { code: 'APP_AGENT_TOOL_NOT_FOUND' } }, 404);
+      const input = body.input;
+      if (!input || typeof input !== 'object' || Array.isArray(input) || typeof body.runId !== 'string')
+        return send(response, { error: { code: 'APP_AGENT_TOOL_REQUEST_INVALID' } }, 400);
+      const controller = new AbortController();
+      response.once('close', () => {
+        if (!response.writableFinished) controller.abort();
+      });
+      try {
+        const result = await trackTask(
+          async () =>
+            tool.handler({
+              input: input as Record<string, unknown>,
+              runId: body.runId as string,
+              ...(typeof body.conversationId === 'string' ? { conversationId: body.conversationId } : {}),
+              signal: controller.signal,
+            }),
+          `agent-tool:${tool.definition.name}`,
+        );
+        return send(response, { result: result ?? null });
+      } catch (error) {
+        const failure = errorFields(error);
+        return send(
+          response,
+          { error: { code: failure.code ?? 'APP_AGENT_TOOL_FAILED', message: failure.message.slice(0, 2000) } },
+          500,
+        );
+      }
+    }
     if (requestUrl.pathname.startsWith('/api/')) {
       if (request.headers.origin && request.headers.origin !== url)
         return send(response, { error: { code: 'APP_ORIGIN_INVALID' } }, 403);
@@ -199,12 +244,14 @@ export async function createWorkbenchServer(
     }
     if (request.method !== 'GET') return send(response, {}, 405);
     const uiRoot = resolve(config.sourceDirectory, manifest.ui);
-    const sdkAsset =
-      requestUrl.pathname === '/__workbench/browser.mjs'
-        ? 'browser.mjs'
-        : requestUrl.pathname === '/__workbench/diagnostics.mjs'
-          ? 'browser-diagnostics.mjs'
-          : null;
+    const browserSdkAssets: Record<string, string> = {
+      '/__workbench/browser.mjs': 'browser.mjs',
+      '/__workbench/diagnostics.mjs': 'browser-diagnostics.mjs',
+      '/__workbench/browser-asr.mjs': 'browser-asr.mjs',
+      '/__workbench/asr-client.mjs': 'asr-client.mjs',
+      '/__workbench/host-error.mjs': 'host-error.mjs',
+    };
+    const sdkAsset = browserSdkAssets[requestUrl.pathname] ?? null;
     let target: string;
     try {
       target = sdkAsset
@@ -309,6 +356,32 @@ export async function createWorkbenchServer(
     action(name, handler) {
       if (actions.has(name)) throw new Error('APP_ACTION_DUPLICATE');
       actions.set(name, handler);
+    },
+    agentTool(definition, handler) {
+      const name = definition?.name;
+      if (typeof name !== 'string' || name.length > 40 || !/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/u.test(name))
+        throw new Error('APP_AGENT_TOOL_NAME_INVALID');
+      if (agentTools.has(name)) throw new Error('APP_AGENT_TOOL_DUPLICATE');
+      if (
+        typeof definition.description !== 'string' ||
+        !definition.description.trim() ||
+        definition.description.length > 4000
+      )
+        throw new Error('APP_AGENT_TOOL_DESCRIPTION_INVALID');
+      const parameters = definition.parameters;
+      if (
+        !parameters ||
+        typeof parameters !== 'object' ||
+        Array.isArray(parameters) ||
+        parameters.type !== 'object' ||
+        JSON.stringify(parameters).length > 50_000
+      )
+        throw new Error('APP_AGENT_TOOL_PARAMETERS_INVALID');
+      if (typeof handler !== 'function') throw new Error('APP_AGENT_TOOL_HANDLER_REQUIRED');
+      agentTools.set(name, {
+        definition: { name, description: definition.description, parameters: structuredClone(parameters) },
+        handler,
+      });
     },
     tasks() {
       return database

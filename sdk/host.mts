@@ -17,8 +17,14 @@ import type {
   WorkflowRun,
   AgentTaskEvent,
   AsrEvent,
+  AudioEvent,
+  AudioJob,
+  AudioProbe,
 } from './host-contracts.mjs';
 export type * from './host-contracts.mjs';
+import { createResumableAsrClient } from './asr-client.mjs';
+import { WorkbenchHostError, type HostFailure } from './host-error.mjs';
+export { WorkbenchHostError } from './host-error.mjs';
 
 /** Model used when an llm call names none; an explicit `model` always wins. */
 export const DEFAULT_LLM_MODEL = 'gemini-3.8-flash';
@@ -26,31 +32,11 @@ const withDefaultModel = <T,>(input: T): T =>
   input !== null && typeof input === 'object' && !Array.isArray(input) && !(input as { model?: unknown }).model
     ? { ...input, model: DEFAULT_LLM_MODEL }
     : input;
-
-interface HostFailure {
-  code: string;
-  message?: string;
-  requestId?: string;
-  execution?: 'not-executed' | 'executed' | 'unknown';
-}
 interface HostResponse<T> {
   error?: HostFailure;
   data: T;
 }
 type TrackTask = <T>(operation: () => Promise<T>, kind?: string) => Promise<T>;
-
-export class WorkbenchHostError extends Error {
-  readonly code: string;
-  readonly requestId?: string;
-  readonly execution: 'not-executed' | 'executed' | 'unknown';
-  constructor(error: HostFailure) {
-    super(error.message ?? error.code ?? 'WORKBENCH_HOST_ERROR');
-    this.name = 'WorkbenchHostError';
-    this.code = error.code ?? 'WORKBENCH_HOST_ERROR';
-    this.requestId = error.requestId;
-    this.execution = error.execution ?? 'not-executed';
-  }
-}
 
 export function createHostClient(
   connection: HostConnection | null | (() => HostConnection | null | undefined),
@@ -93,10 +79,29 @@ export function createHostClient(
   ): Promise<T> {
     return track(async () => {
       const response = await transmit('/v1/call', { domain, operation, input, requestId: options.requestId }, options);
-      const result = (await response.json()) as HostResponse<T>;
+      const result =
+        domain === 'asr' && operation === 'sendFrame'
+          ? await asrResponse<T>(response)
+          : ((await response.json()) as HostResponse<T>);
       if (!response.ok || result.error) throw new WorkbenchHostError(result.error ?? { code: 'HOST_REQUEST_FAILED' });
       return result.data;
     }, `${domain}.${operation}`);
+  }
+
+  async function asrResponse<T>(response: Response): Promise<HostResponse<T>> {
+    let result: HostResponse<T>;
+    try {
+      result = (await response.json()) as HostResponse<T>;
+    } catch (error) {
+      if (!response.ok) throw new WorkbenchHostError({ code: 'HOST_REQUEST_FAILED' }, response.status);
+      throw new WorkbenchHostError({
+        code: error instanceof SyntaxError ? 'HOST_RESPONSE_INVALID' : 'HOST_TRANSPORT_FAILED',
+        execution: 'unknown',
+      });
+    }
+    if (!response.ok || result.error)
+      throw new WorkbenchHostError(result.error ?? { code: 'HOST_REQUEST_FAILED' }, response.status);
+    return result;
   }
 
   async function* events<T extends { type: string }>(
@@ -125,6 +130,7 @@ export function createHostClient(
         options,
         resumable ? subscriptionSignal : undefined,
       );
+      if (!response.ok && domain === 'asr') await asrResponse(response);
       if (!response.ok)
         throw new WorkbenchHostError(
           ((await response.json()) as HostResponse<unknown>).error ?? { code: 'HOST_REQUEST_FAILED' },
@@ -162,6 +168,8 @@ export function createHostClient(
         if (!terminal) throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
       } catch (error) {
         if (error instanceof WorkbenchHostError) throw error;
+        if (domain === 'asr' && error instanceof SyntaxError)
+          throw new WorkbenchHostError({ code: 'HOST_STREAM_INVALID', execution: 'unknown' });
         throw new WorkbenchHostError({ code: 'HOST_STREAM_INTERRUPTED', execution: 'unknown' });
       } finally {
         await reader.cancel().catch(() => undefined);
@@ -257,13 +265,21 @@ export function createHostClient(
       events: (input, options) => agentEvents(input, options),
       cancel: (input) => request('agent', 'cancel', input),
     },
-    asr: {
+    asr: createResumableAsrClient({
       start: (input, options) => request('asr', 'start', input, options),
-      sendFrame: (input) => request('asr', 'sendFrame', input),
-      get: (input) => request('asr', 'get', input),
-      events: (input, options) => events<AsrEvent>('asr', 'events', input, options),
-      stop: (input) => request('asr', 'stop', input),
-      cancel: (input) => request('asr', 'cancel', input),
+      sendFrame: (input, options) => request('asr', 'sendFrame', input, options),
+      get: (input, options) => request('asr', 'get', input, options),
+      events: (input, options) => events<AsrEvent>('asr', 'events', input, options, true),
+      stop: (input, options) => request('asr', 'stop', input, options),
+      cancel: (input, options) => request('asr', 'cancel', input, options),
+    }),
+    audio: {
+      probe: (input) => request<AudioProbe>('audio', 'probe', input),
+      denoise: (input, options) => request('audio', 'denoise', input, options),
+      transcribeFile: (input, options) => request('audio', 'transcribeFile', input, options),
+      get: (input) => request<AudioJob>('audio', 'get', input),
+      events: (input, options) => events<AudioEvent>('audio', 'events', input, options, true),
+      cancel: (input) => request<AudioJob>('audio', 'cancel', input),
     },
     capabilities: { list: (input = {}) => request('capabilities', 'list', input) },
     llm: {
@@ -271,7 +287,6 @@ export function createHostClient(
       generateObject: (input, options) =>
         request<ModelResult & { object: unknown }>('llm', 'generateObject', withDefaultModel(input), options),
       streamText: (input, options) => events<ModelEvent>('llm', 'streamText', withDefaultModel(input), options),
-      // 媒体与决策模型的默认值由 Host 模型目录决定，不套用文本默认模型。
       listModels: (input = {}) => request<ModelCatalog>('llm', 'listModels', input),
       generateSpeech: (input, options = {}) =>
         request<SpeechResult>('llm', 'generateSpeech', input, { timeoutMs: 150_000, ...options }),

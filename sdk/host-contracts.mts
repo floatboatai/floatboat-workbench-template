@@ -10,8 +10,10 @@ import type {
   AgentConversationMessage,
 } from './agent-contracts.mjs';
 import type { AsrStartInput, AsrSession, AsrEvent } from './asr-contracts.mjs';
+import type { AudioEvent, AudioJob, AudioProbe, AudioResourceReference } from './audio-contracts.mjs';
 export type * from './agent-contracts.mjs';
 export type * from './asr-contracts.mjs';
+export type * from './audio-contracts.mjs';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -117,7 +119,9 @@ export type SpeechFormat = 'mp3' | 'wav' | 'opus' | 'aac' | 'flac' | 'pcm';
 export interface SpeechInput {
   text: string;
   model?: string;
+  /** 供应商音色 ID：ElevenLabs 为 voice ID，Chirp 为 cmn-CN-Chirp3-HD-Kore 形式；留空使用该模型的默认音色。 */
   voice?: string;
+  /** 平台语音模型通常只支持 mp3、wav、opus、pcm（24 kHz 16 位单声道）。 */
   format?: SpeechFormat;
   speed?: number;
   instructions?: string;
@@ -156,9 +160,12 @@ export interface ImageGenerationResult {
 type DecisionInstructions = string | Json[] | { [key: string]: Json };
 
 export type DecisionQuestion =
-  | { type: 'noul'; instructions: DecisionInstructions; criteria?: Json }
-  | { type: 'choice'; instructions: DecisionInstructions; criteria: Json }
-  | { type: 'score'; instructions: DecisionInstructions; criteria: Json };
+  /** criteria 可选：{ true?, false? } 分别描述什么算“是”与“否”。回答为 { type:'noul', noul: 0–1 }。 */
+  | { type: 'noul'; instructions: DecisionInstructions; criteria?: { true?: Json; false?: Json } }
+  /** criteria 为「选项名 → 说明」对象，1–255 项。回答含 choice、confidence 与各选项 probabilities。 */
+  | { type: 'choice'; instructions: DecisionInstructions; criteria: { [choice: string]: Json } }
+  /** criteria 为按分值从 0 起排列的等级数组，1–10 项。回答的 score 为概率加权分，可为小数，并附 legend。 */
+  | { type: 'score'; instructions: DecisionInstructions; criteria: Json[] };
 
 export interface DecisionInput {
   /** 默认 jev-latest。 */
@@ -360,11 +367,41 @@ export interface HostClient {
   };
   asr: {
     start(input: AsrStartInput, options?: CallOptions): Promise<{ streamId: string }>;
-    sendFrame(input: { streamId: string; sequence: number; pcmBase64: string }): Promise<{ nextSequence: number }>;
-    get(input: { streamId: string }): Promise<AsrSession>;
+    /** 回执确认 Host 已持久保存该帧，不代表云端已识别；网络故障重试原序号。 */
+    sendFrame(
+      input: { streamId: string; sequence: number; pcmBase64: string },
+      options?: CallOptions,
+    ): Promise<{ nextSequence: number }>;
+    get(input: { streamId: string }, options?: CallOptions): Promise<AsrSession>;
+    /** 断流按游标恢复；游标过期明确报错，不能用 get 的最新文本替代历史。 */
     events(input: { streamId: string; afterSequence?: number }, options?: CallOptions): AsyncIterable<AsrEvent>;
-    stop(input: { streamId: string }): Promise<AsrSession>;
-    cancel(input: { streamId: string }): Promise<AsrSession>;
+    /** 停止接收新音频；stopping 表示本机音频仍待补识别，最终结果继续从 events 获取。 */
+    stop(input: { streamId: string }, options?: CallOptions): Promise<AsrSession>;
+    cancel(input: { streamId: string }, options?: CallOptions): Promise<AsrSession>;
+  };
+  audio: {
+    probe(input: AudioResourceReference): Promise<AudioProbe>;
+    denoise(
+      input: {
+        input: AudioResourceReference;
+        output: AudioResourceReference;
+        outputFormat?: 'm4a' | 'wav' | 'mp3';
+        idempotencyKey: string;
+      },
+      options?: CallOptions,
+    ): Promise<{ jobId: string }>;
+    transcribeFile(
+      input: {
+        input: AudioResourceReference;
+        idempotencyKey: string;
+        preprocess?: { denoise?: boolean };
+        speakerDiarizationEnabled?: boolean;
+      },
+      options?: CallOptions,
+    ): Promise<{ jobId: string }>;
+    get(input: { jobId: string }): Promise<AudioJob>;
+    events(input: { jobId: string; afterSequence?: number }, options?: CallOptions): AsyncIterable<AudioEvent>;
+    cancel(input: { jobId: string }): Promise<AudioJob>;
   };
   capabilities: {
     list(input?: { domain?: string; operation?: string }): Promise<{
