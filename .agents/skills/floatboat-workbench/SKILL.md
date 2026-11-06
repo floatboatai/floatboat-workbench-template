@@ -36,7 +36,7 @@ These topics are also available without installing dependencies through `node to
 | Browser connection, theme and Host contributions | [ui](references/ui.md) |
 | Business tables, migrations and transaction boundaries | [database](references/database.md) |
 | Workflow/Combo declarations and portable file resources | [resources](references/resources.md) |
-| Model text, structured output, streaming, image input, speech, image generation, Jev decisions or model list | [llm](references/llm.md) |
+| Model text, structured output, streaming, conversations, tool calls, reasoning, image input, speech, image generation, Jev decisions, embeddings, reranking or model list | [llm](references/llm.md) |
 | Agent tasks with tools and an explicit execution directory | [agent](references/agent.md) |
 | Streaming speech recognition | [asr](references/asr.md) |
 | Starting or observing a declared Workflow | [workflows](references/workflows.md) |

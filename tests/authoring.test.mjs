@@ -197,6 +197,24 @@ test('类型错误和浏览器越界导入保持阻断', async (t) => {
   assert.ok(diagnostics.some((issue) => issue.code === 'WORKBENCH_BROWSER_SERVER_IMPORT'));
 });
 
+test('检查扫描服务端新 Host 操作写入 requires，只用基线操作时不写该字段', async (t) => {
+  const { root } = await fixture(t);
+  await checkApplication(root);
+  assert.equal(JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')).requires, undefined);
+  const entry = join(root, 'src/server/index.ts');
+  await writeFile(entry, (await readFile(entry, 'utf8')).replace('await app.listen();', `
+app.route('POST', '/api/search', async ({ host }) => {
+  const { embed } = host.llm;
+  const vectors = await embed({ model: 'embed-test', input: ['a'] });
+  const answer = await host.llm.generateText({ messages: [{ role: 'user', content: 'hi' }] });
+  return { size: vectors.embeddings.length, text: answer.text };
+});
+await app.listen();`));
+  const checked = await checkApplication(root);
+  assert.deepEqual(checked.requires, { operations: ['llm.embed', 'llm.messages'] });
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')).requires, checked.requires);
+});
+
 test('独立无凭据 HTTP、平台未连接、Origin 校验、SQLite 持久化和退出清理', async (t) => {
   const { root } = await fixture(t);
   await writeFile(join(root, 'migrations/0002_test.sql'), 'CREATE TABLE preview_notes (text TEXT NOT NULL);');
