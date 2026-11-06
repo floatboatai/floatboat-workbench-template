@@ -5,7 +5,7 @@ Declare `llm` in manifest.capabilities. Call the SDK on the server; the browser 
 ## Text, structured output and streaming
 
 - `app.host.llm.generateText({ prompt, ...options })` returns text, model, requestId, finishReason, optional usage and an `assistant` message you can append to a conversation.
-- `generateObject({ prompt, schema })` validates output against JSON Schema. Treat the returned object as unknown until checked against the business type.
+- `generateObject({ prompt, schema })` validates output against JSON Schema. The Host first extracts JSON from a code fence or surrounding prose; text that still is not JSON fails with `LLM_OBJECT_INVALID` and a schema mismatch with `LLM_OBJECT_SCHEMA_MISMATCH` (both executed, so retry deliberately). Treat the returned object as unknown until checked against the business type.
 - `streamText({ prompt })` returns an async iterable with delta, tool-call, result and done events. Preserve incomplete/interrupted state if the stream ends without the required terminal result.
 - With `prompt`, all three accept `images` (up to 8, each at most 10 MiB): `{ resource: { resourceId, relativePath } }` for a file in a declared directory resource, `{ url: 'https://…' }` that the Host downloads, or a small `{ dataUrl: 'data:image/png;base64,…' }` (the whole request is limited to 2 MiB). Only PNG, JPEG, WebP and GIF are accepted. A model or protocol without image input returns `LLM_IMAGE_INPUT_UNSUPPORTED` before any charge; check `inputs` from `listModels` first.
 
@@ -30,37 +30,40 @@ for (let round = 0; round < 5; round++) {
 
 ## Model catalog
 
-`listModels({ kind? })` returns `models` (`id`, `kinds` of `text`/`speech`/`image`/`decision`/`embedding`/`rerank`, `inputs` of `text`/`image`, `source`), per-kind `defaults`, and `media`. Text models follow the same release, membership and local-model rules as the Floatboat chat model picker. Speech, image, decision, embedding and rerank models come from the platform catalog; when `media` is `unavailable` that part may be incomplete, so keep an explicit retry instead of treating it as "no models". Choose models from this result rather than hard-coding names.
+`listModels({ kind? })` returns `models` (`id`, `kinds` of `text`/`speech`/`image`/`decision`/`rerank`, `inputs` of `text`/`image`, `source`), per-kind `defaults`, and `media`. Text models follow the same release, membership and local-model rules as the Floatboat chat model picker. `defaults.text` is the text default (`gemini-3.8-flash` when allowed); local models are listed with `source: 'local'` but are never a default. Speech, image, decision and rerank models come from a list Floatboat configures remotely (the first entry of each kind is its default), so `media` is always `available`; the platform may change these lists without an app update. Choose models from this result rather than hard-coding names.
 
 ## Speech and images
 
 Both write results into a manifest resource with `kind: 'directory'` and `access: 'read-write'`; pass a logical `output: { resourceId, relativePath }`, never an absolute path. Results return the resource reference, byte length and format/MIME only.
 
-- `generateSpeech({ text, voice?, format?, speed?, instructions?, model?, output })` synthesizes up to 4096 characters. `format` is `mp3` (default), `wav`, `opus`, `aac`, `flac` or `pcm`.
+- `generateSpeech({ text, voice?, format?, speed?, instructions?, model?, output })` synthesizes up to 4096 characters. `voice` is a provider voice ID (an ElevenLabs voice ID, or a Chirp name such as `cmn-CN-Chirp3-HD-Kore`); leave it empty for the model's default voice and do not pass OpenAI names like `alloy`. Platform speech models generally support `mp3` (default), `wav`, `opus` and `pcm` (24 kHz, 16-bit mono), and most reject `instructions`.
 - `generateImage({ prompt, size?, quality?, count?, images?, model?, output })` creates 1–4 images. With `images` it edits from those references. For `count > 1`, files get `-1`, `-2` before the extension. The default request deadline is 330 seconds; show progress instead of blocking the page.
 
-Omitting `model` uses the catalog default for that kind; if the catalog is unavailable the call returns `LLM_MODEL_REQUIRED`.
+Omitting `model` uses the catalog default for that kind; a kind with no models yet (rerank today) has no default, so the call returns `LLM_MODEL_REQUIRED` until you pass an explicit `model`.
 
 ## Decisions (Jev)
 
-`decide({ state, questions, model? })` asks the platform decision model (default `jev-latest`) structured questions about `state` (string, object or array). `questions` holds 1–32 entries keyed by `[A-Za-z0-9_-]{1,64}`, each `{ type: 'noul' | 'choice' | 'score', instructions, criteria? }`; `choice` and `score` require `criteria`. It returns the raw `answers`. Use it for yes/no, option and scoring judgements; it is cheaper and steadier than prompting a text model, and does not generate prose.
+`decide({ state, questions, model? })` asks the platform decision model (default `jev-latest`) structured questions about `state` (string, object or array). `questions` holds 1–32 entries keyed by `[A-Za-z0-9_-]{1,64}`, each `{ type: 'noul' | 'choice' | 'score', instructions, criteria? }`. For `choice`, `criteria` is an object mapping each option name to its description (1–255 entries); for `score`, it is an ordered array of levels scored from 0 (1–10 entries); `noul` optionally takes `{ true, false }` descriptions. Other shapes return `LLM_DECISION_CRITERIA_INVALID` before any charge. It returns the raw `answers`. Use it for yes/no, option and scoring judgements; it is cheaper and steadier than prompting a text model, and does not generate prose.
 
 ```ts
 const result = await app.host.llm.decide({
   state: { message: ticket.body },
-  questions: { urgent: { type: 'noul', instructions: 'Does the customer need a reply within an hour?' } },
+  questions: {
+    urgent: { type: 'noul', instructions: 'Does the customer need a reply within an hour?' },
+    topic: { type: 'choice', instructions: 'What is the message about?', criteria: { billing: 'Invoices or charges', bug: 'Something is broken' } },
+    tone: { type: 'score', instructions: 'How upset is the customer?', criteria: ['Calm', 'Annoyed', 'Angry'] },
+  },
 });
 ```
 
-## Retrieval: embeddings and reranking
+## Retrieval: reranking
 
-- `embed({ model, input, dimensions? })` requires an explicit model (pick one from `listModels({ kind: 'embedding' })`) and takes up to 256 texts. Vectors from different models are not comparable, so store the model ID next to each vector.
 - `rerank({ query, documents, topN?, model? })` returns `{ index, relevanceScore }` sorted by score, with `index` pointing into `documents` (up to 1000).
-- The Host does not store vectors. Keep them in your app's SQLite as BLOBs and compare them with `sdk/vectors.mts`: `vectorToBlob`, `vectorFromBlob`, `cosineSimilarity` and `topK`. A full scan of 10,000 vectors at 1536 dimensions takes about 20 ms; use `topK` for recall, then `rerank` the shortlist.
+- For a small candidate set, rerank all documents directly and show the matching originals as sources.
 
 ## Required Host operations
 
-`pnpm workbench:check` and Floatboat builds scan the server code and write Host operations newer than the baseline (for example `llm.embed`, or `llm.messages` / `llm.tools` / `llm.reasoning` / `llm.images` when text calls use those fields) to `manifest.requires.operations`. Older Floatboat clients then ask the user to update instead of failing at runtime. Commit the field with your code; the build only adds entries, so remove one by hand only when the code no longer uses it.
+`pnpm workbench:check` and Floatboat builds scan the server code and write Host operations newer than the baseline (for example `llm.rerank`, or `llm.messages` / `llm.tools` / `llm.reasoning` / `llm.images` when text calls use those fields) to `manifest.requires.operations`. Older Floatboat clients then ask the user to update instead of failing at runtime. Commit the field with your code; the build only adds entries, so remove one by hand only when the code no longer uses it.
 
 ## Errors and billing
 

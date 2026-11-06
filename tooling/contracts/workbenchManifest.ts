@@ -80,8 +80,21 @@ export const workbenchManifestSchema = z
     ui: relativePath,
     migrations: relativePath,
     capabilities: z
-      .array(z.enum(['llm', 'agent', 'asr', 'workflows', 'connected-services', 'calendar', 'automation', 'workspaces']))
-      .max(8)
+      .array(
+        z.enum([
+          'llm',
+          'agent',
+          'asr',
+          'workflows',
+          'connected-services',
+          'calendar',
+          'automation',
+          'workspaces',
+          // 在 Agent 进度事件中提供截断后的工具参数与结果；需同时声明 agent。
+          'agent-tool-details',
+        ]),
+      )
+      .max(9)
       .refine((values) => new Set(values).size === values.length, '能力声明不能重复')
       .default([]),
     dependencies: z.array(workbenchDependencySchema).max(64).optional(),
@@ -109,6 +122,8 @@ export const workbenchManifestSchema = z
     validateWorkbenchAssetDeclarations(manifest, context);
     if (manifest.connectedServices?.length && !manifest.capabilities.includes('connected-services'))
       context.addIssue({ code: 'custom', path: ['connectedServices'], message: '服务声明需要 connected-services 能力' });
+    if (manifest.capabilities.includes('agent-tool-details') && !manifest.capabilities.includes('agent'))
+      context.addIssue({ code: 'custom', path: ['capabilities'], message: 'agent-tool-details 需要同时声明 agent 能力' });
     const services = manifest.connectedServices?.map(item => item.id) ?? [];
     if (new Set(services).size !== services.length)
       context.addIssue({ code: 'custom', path: ['connectedServices'], message: '服务逻辑标识不能重复' });

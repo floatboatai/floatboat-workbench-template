@@ -12,7 +12,7 @@ Read and update `app/ENGINEERING.md` for the actual entrypoints, module responsi
 
 Use strict TypeScript and unknown plus validation for external JSON. The compiler rejects explicit any, type-check suppression and server/Node imports from UI. Edit source and the declarative manifest/build configuration; `app/dist/`, `app/sdk/` and `.generated/` are generated. Application Vite/PostCSS configs, plugins and package scripts are not the Host build interface.
 
-For an additional pure-JS runtime dependency, choose an exact compatible version and update both the root and `app/` package/lock files using pnpm (`pnpm add --save-exact package@version`, then the corresponding command from `app/`). The root toolchain supplies TypeScript, Vite and esbuild. Native modules are outside this application profile. Checking verifies the lock against installed versions; it does not repair dependencies through network access.
+For an additional pure-JS runtime dependency, choose an exact compatible version and update both the root and `app/` package/lock files using pnpm (`pnpm add --save-exact package@version`, then the corresponding command from `app/`). The root toolchain supplies TypeScript, Vite and esbuild. Native modules are outside this application profile. Checking verifies the lock against installed versions; it does not repair dependencies through network access. Code cannot be downloaded or loaded by package name at runtime: the build rejects dynamic `import()`/`require` with non-literal paths and unbundled external dependencies, so review can see all code. When porting a plugin-based app, install the plugins you need as dependencies before building and import them with fixed paths.
 
 ## Metadata
 

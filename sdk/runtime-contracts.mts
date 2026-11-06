@@ -7,6 +7,7 @@ import type { WorkbenchResources, WorkbenchResourceDeclaration } from './resourc
 import type { DatabaseSync } from 'node:sqlite';
 
 import type { HostClient } from './host.mjs';
+import type { AgentToolCall, AgentToolDefinition } from './agent-contracts.mjs';
 
 export interface WorkbenchManifest {
   appId: string;
@@ -40,6 +41,11 @@ export interface WorkbenchServer {
     handler: (context: RouteContext) => unknown | Promise<unknown>,
   ): void;
   action(name: string, handler: (input: unknown) => unknown | Promise<unknown>): void;
+  /**
+   * 注册本工作台 Agent 运行可调用的工具；需要 manifest 声明 agent。
+   * 返回值交给模型：字符串原样传递，其他值序列化为 JSON。抛错时模型收到错误码与消息。
+   */
+  agentTool(definition: AgentToolDefinition, handler: (call: AgentToolCall) => unknown | Promise<unknown>): void;
   trackTask<T>(operation: () => Promise<T>, kind?: string): Promise<T>;
   tasks(): Array<{ id: string; kind: string; state: string; updated_at: string; error_code: string | null }>;
   close(): Promise<void>;

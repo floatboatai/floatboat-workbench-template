@@ -83,6 +83,62 @@ test("客户端后启动、租约续期、重启重连和退出释放；只在 s
   assert.equal(disconnects, 2);
 });
 
+test("心跳瞬时失败在宽限期内保留租约，持续失败超过宽限期才重连", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "floatboat-heartbeat-"));
+  await chmod(directory, 0o700);
+  let connects = 0;
+  let dropHeartbeats = false;
+  const server = createServer(async (req, res) => {
+    for await (const _chunk of req);
+    // 模拟 Host 主进程短暂繁忙：连接被直接断开，客户端拿不到任何 Host 错误码。
+    if (req.url === "/heartbeat" && dropHeartbeats) return req.socket.destroy();
+    res.setHeader("content-type", "application/json");
+    if (req.url === "/status") res.end('{"protocol":2}');
+    else if (req.url === "/connect") {
+      connects++;
+      res.end(JSON.stringify({ connection: { url: `${url}/workbenches/test/${connects}` }, lease: "c".repeat(64), resources: {} }));
+    } else res.end("{}");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${server.address().port}`;
+  await writeFile(join(directory, "test.json"), JSON.stringify({ protocol: 2, instance: "test", url }), { mode: 0o600 });
+  const changes = [];
+  const options = { directory, intervalMs: 15, onStatus() {}, onChange: (value) => changes.push(value) };
+  try {
+    const tolerant = await connectLocalHost({}, { ...options, leaseGraceMs: 60_000 });
+    try {
+      assert.equal(connects, 1);
+      dropHeartbeats = true;
+      await delay(200);
+      assert.equal(connects, 1);
+      assert.equal(tolerant.current().connection.url, `${url}/workbenches/test/1`);
+      assert.ok(!changes.includes(null));
+    } finally {
+      dropHeartbeats = false;
+      await tolerant.close();
+    }
+    const strict = await connectLocalHost({}, { ...options, leaseGraceMs: 50 });
+    try {
+      assert.equal(connects, 2);
+      dropHeartbeats = true;
+      for (let i = 0; i < 300 && connects < 3; i++) {
+        await delay(15);
+        if (strict.current() === null) dropHeartbeats = false;
+      }
+      assert.equal(connects, 3);
+    } finally {
+      dropHeartbeats = false;
+      await strict.close();
+    }
+  } finally {
+    await new Promise((resolve) => {
+      server.close(resolve);
+      server.closeAllConnections();
+    });
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("不使用可被其他用户改写的发现描述文件", async () => {
   if (!process.getuid) return;
   const directory = await mkdtemp(join(tmpdir(), "floatboat-discovery-mode-"));
