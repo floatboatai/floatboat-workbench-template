@@ -86,6 +86,7 @@ export const WORKBENCH_SDK_FEATURES = [
   'llm.messages',
   'llm.tools',
   'llm.reasoning',
+  'llm.webSearch',
   'agent.instructions',
   'agent.tools',
 ] as const;

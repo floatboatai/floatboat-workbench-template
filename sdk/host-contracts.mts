@@ -85,6 +85,8 @@ export type ModelInput = ModelConversation & {
 export type TextModelInput = ModelInput & {
   tools?: ToolDefinition[];
   toolChoice?: ToolChoice;
+  /** 使用模型供应商自带的联网搜索，默认 false；模型不支持时 Host 按 false 处理。 */
+  webSearch?: boolean;
 };
 
 export type ModelKind = 'text' | 'speech' | 'image' | 'decision' | 'embedding' | 'rerank';

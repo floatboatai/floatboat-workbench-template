@@ -13,7 +13,7 @@ Calls that name no model use `DEFAULT_LLM_MODEL` (`gemini-3.8-flash`, exported b
 
 ## Conversations, tools and reasoning
 
-Pass `messages` instead of `prompt` (one or the other) for multi-turn calls: `{ role: 'system' | 'user', content }`, `{ role: 'user', content: [{ type: 'text', text }, { type: 'image', image }] }` and `{ role: 'tool', toolCallId, content }`. Append the previous result's `assistant` unchanged; its `hostState` is encrypted reasoning material the Host needs for the next turn. Do not edit it; if it is altered or the account changes, the Host continues without it instead of failing. `reasoning: 'off' | 'low' | 'medium' | 'high'` sets reasoning effort and falls back to off on models without it.
+Pass `messages` instead of `prompt` (one or the other) for multi-turn calls: `{ role: 'system' | 'user', content }`, `{ role: 'user', content: [{ type: 'text', text }, { type: 'image', image }] }` and `{ role: 'tool', toolCallId, content }`. Append the previous result's `assistant` unchanged; its `hostState` is encrypted reasoning material the Host needs for the next turn. Do not edit it; if it is altered or the account changes, the Host continues without it instead of failing. `reasoning: 'off' | 'low' | 'medium' | 'high'` sets reasoning effort and falls back to off on models without it. `webSearch: true` on `generateText` or `streamText` lets the model use its provider's built-in web search for questions about current facts; it defaults to false, falls back to false on models without it, and adds latency and cost, so expose it as a user choice rather than turning it on for every call.
 
 Tools run in your app, not in the Host. Pass `tools: [{ name, description?, parameters }]` (`parameters` is a JSON Schema with `type: 'object'`) and optionally `toolChoice: 'auto' | 'none' | 'required' | { name }` to `generateText` or `streamText`. When `finishReason` is `TOOL_CALLS`, run each entry of `toolCalls` (`{ id, name, input, inputError? }`) yourself, then call again with the history plus `result.assistant` and one tool message per call. `inputError` means the arguments failed the schema; return it as the tool result so the model can correct itself. Cap the number of rounds and check permissions before any tool writes data.
 
@@ -63,7 +63,7 @@ const result = await app.host.llm.decide({
 
 ## Required Host operations
 
-`pnpm workbench:check` and Floatboat builds scan the server code and write Host operations newer than the baseline (for example `llm.rerank`, or `llm.messages` / `llm.tools` / `llm.reasoning` / `llm.images` when text calls use those fields) to `manifest.requires.operations`. Older Floatboat clients then ask the user to update instead of failing at runtime. Commit the field with your code; the build only adds entries, so remove one by hand only when the code no longer uses it.
+`pnpm workbench:check` and Floatboat builds scan the server code and write Host operations newer than the baseline (for example `llm.rerank`, or `llm.messages` / `llm.tools` / `llm.reasoning` / `llm.webSearch` / `llm.images` when text calls use those fields) to `manifest.requires.operations`. Older Floatboat clients then ask the user to update instead of failing at runtime. Commit the field with your code; the build only adds entries, so remove one by hand only when the code no longer uses it.
 
 ## Errors and billing
 

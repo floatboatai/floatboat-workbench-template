@@ -14,6 +14,7 @@ const TEXT_FEATURE_FIELDS: Readonly<Record<string, string>> = {
   tools: 'llm.tools',
   toolChoice: 'llm.tools',
   reasoning: 'llm.reasoning',
+  webSearch: 'llm.webSearch',
 };
 /** 旧客户端严格校验会拒收的 Agent 调用字段。 */
 const AGENT_FEATURE_FIELDS: Readonly<Record<string, string>> = { instructions: 'agent.instructions' };
