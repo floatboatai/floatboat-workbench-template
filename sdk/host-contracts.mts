@@ -96,6 +96,8 @@ export interface ModelCatalogEntry {
   kinds: ModelKind[];
   inputs: Array<'text' | 'image'>;
   source: 'platform' | 'local';
+  /** 文本模型是否支持 webSearch；未标注时按不支持处理。 */
+  webSearch?: boolean;
 }
 
 export interface ModelCatalog {
