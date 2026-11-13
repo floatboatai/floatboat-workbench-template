@@ -206,12 +206,12 @@ test('检查扫描服务端新 Host 操作写入 requires，只用基线操作�
 app.route('POST', '/api/search', async ({ host }) => {
   const { embed } = host.llm;
   const vectors = await embed({ model: 'embed-test', input: ['a'] });
-  const answer = await host.llm.generateText({ messages: [{ role: 'user', content: 'hi' }] });
+  const answer = await host.llm.generateText({ messages: [{ role: 'user', content: 'hi' }], webSearch: true });
   return { size: vectors.embeddings.length, text: answer.text };
 });
 await app.listen();`));
   const checked = await checkApplication(root);
-  assert.deepEqual(checked.requires, { operations: ['llm.embed', 'llm.messages'] });
+  assert.deepEqual(checked.requires, { operations: ['llm.embed', 'llm.messages', 'llm.webSearch'] });
   assert.deepEqual(JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')).requires, checked.requires);
 });
 

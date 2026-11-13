@@ -85,6 +85,8 @@ export type ModelInput = ModelConversation & {
 export type TextModelInput = ModelInput & {
   tools?: ToolDefinition[];
   toolChoice?: ToolChoice;
+  /** 使用模型供应商自带的联网搜索，默认 false；模型不支持时 Host 按 false 处理。 */
+  webSearch?: boolean;
 };
 
 export type ModelKind = 'text' | 'speech' | 'image' | 'decision' | 'embedding' | 'rerank';
@@ -94,6 +96,8 @@ export interface ModelCatalogEntry {
   kinds: ModelKind[];
   inputs: Array<'text' | 'image'>;
   source: 'platform' | 'local';
+  /** 文本模型是否支持 webSearch；未标注时按不支持处理。 */
+  webSearch?: boolean;
 }
 
 export interface ModelCatalog {
